@@ -244,7 +244,13 @@ def get_last_operators(context, debug=False):
                 # prop = f"{mode}"
                 label = f"{mode} Cursor"
 
+        elif idname == 'machin3.pick_hyper_bevel':
+            mirror = getattr(op, 'mirror')
 
+            if mirror:
+                label = 'Mirror Hyper Bevel'
+            else:
+                label = 'Remove Hyper Bevel'
 
         operators.append((addon, label, idname, prop))
 

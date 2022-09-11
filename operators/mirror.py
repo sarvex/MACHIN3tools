@@ -567,7 +567,7 @@ class Mirror(bpy.types.Operator):
 
         # create mirror empty
         if self.cursor:
-            if self.cursor_empty and self.use_existing_cursor:
+            if self.flick and self.cursor_empty and self.use_existing_cursor:
                 # print("reusing existing empty")
                 empty = self.cursor_empty
 
@@ -575,7 +575,7 @@ class Mirror(bpy.types.Operator):
                 # print("creating new empty")
                 empty = bpy.data.objects.new(name=f"{active.name} Mirror", object_data=None)
                 context.collection.objects.link(empty)
-                empty.matrix_world = self.cmx
+                empty.matrix_world = context.scene.cursor.matrix
 
                 empty.show_in_front = True
                 empty.empty_display_type = 'ARROWS'

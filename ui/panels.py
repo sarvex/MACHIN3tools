@@ -303,7 +303,7 @@ class PanelMACHIN3tools(bpy.types.Panel):
         column.scale_y = 1.2
 
         column.operator("machin3.create_assembly_asset", text='Create Assembly Asset', icon='ASSET_MANAGER')
-        column.operator("machin3.assemble_collection_instance", text='Assemble Collection Instance', icon='NETWORK_DRIVE')
+        column.operator("machin3.assemble_instance_collection", text='Assemble Instance Collection', icon='NETWORK_DRIVE')
 
         # column.separator()
         # column.prop(context.scene.M3, "asset_collect_path", text='Folder')

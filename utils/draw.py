@@ -24,30 +24,31 @@ def draw_axes_HUD(context, objects):
 
             # draw object(s)
             for obj in objects:
-                mx = obj.matrix_world
-                origin = mx.decompose()[0]
+                if str(obj) != '<bpy_struct, Object invalid>':
+                    mx = obj.matrix_world
+                    origin = mx.decompose()[0]
 
-                # coords.append(origin)
-                coords.append(origin + mx.to_3x3() @ axis * size * 0.1)
-                coords.append(origin + mx.to_3x3() @ axis * size)
+                    # coords.append(origin)
+                    coords.append(origin + mx.to_3x3() @ axis * size * 0.1)
+                    coords.append(origin + mx.to_3x3() @ axis * size)
 
-                """
-                # debuging stash + stashtargtmx for object origin changes
-                for stash in obj.MM.stashes:
-                    if s tash.obj:
-                        smx = sta sh.obj.MM.stashmx
-                        sorigin = smx.decompose()[0]
+                    """
+                    # debuging stash + stashtargtmx for object origin changes
+                    for stash in obj.MM.stashes:
+                        if s tash.obj:
+                            smx = sta sh.obj.MM.stashmx
+                            sorigin = smx.decompose()[0]
 
-                        coords.append(sorigin + smx.to_3x3() @ axis * size * 0.1)
-                        coords.append(sorigin + smx.to_3x3() @ axis * size)
+                            coords.append(sorigin + smx.to_3x3() @ axis * size * 0.1)
+                            coords.append(sorigin + smx.to_3x3() @ axis * size)
 
 
-                        stmx = stash.obj.MM.stashtargetmx
-                        storigin = stmx.decompose()[0]
+                            stmx = stash.obj.MM.stashtargetmx
+                            storigin = stmx.decompose()[0]
 
-                        coords.append(storigin + stmx.to_3x3() @ axis * size * 0.1)
-                        coords.append(storigin + stmx.to_3x3() @ axis * size)
-                """
+                            coords.append(storigin + stmx.to_3x3() @ axis * size * 0.1)
+                            coords.append(storigin + stmx.to_3x3() @ axis * size)
+                    """
 
             if coords:
                 indices = [(i, i + 1) for i in range(0, len(coords), 2)]

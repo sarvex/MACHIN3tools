@@ -6,7 +6,7 @@ from gpu_extras.presets import draw_circle_2d
 import blf
 from . wm import get_last_operators
 from . registration import get_prefs
-from . ui import require_header_offset
+from . ui import require_header_offset, get_zoom_factor
 from .. colors import red, green, blue, black, white
 
 
@@ -28,9 +28,11 @@ def draw_axes_HUD(context, objects):
                     mx = obj.matrix_world
                     origin = mx.decompose()[0]
 
+                    factor = get_zoom_factor(context, origin, scale=500, ignore_obj_scale=True)
+
                     # coords.append(origin)
-                    coords.append(origin + mx.to_3x3() @ axis * size * 0.1)
-                    coords.append(origin + mx.to_3x3() @ axis * size)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor * 0.1)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor)
 
                     """
                     # debuging stash + stashtargtmx for object origin changes

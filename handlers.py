@@ -15,6 +15,9 @@ focusHUD = None
 surfaceslideHUD = None
 screencastHUD = None
 
+meshmachine = None
+decalmachine = None
+
 
 @persistent
 def update_msgbus(none):
@@ -69,8 +72,15 @@ def update_group(none):
 
 @persistent
 def update_asset(none):
+    global meshmachine, decalmachine
+
+    if meshmachine is None:
+        meshmachine = get_addon('MESHmachine')[0]
+
+    if decalmachine is None:
+        decalmachine = get_addon('DECALmachine')[0]
+
     context = bpy.context
-    # return
 
     if context.mode == 'OBJECT':
 
@@ -82,19 +92,20 @@ def update_asset(none):
         if operators and active and active.type == 'EMPTY' and active.instance_collection and active.instance_type == 'COLLECTION':
             lastop = operators[-1]
 
-            if lastop.bl_idname == 'OBJECT_OT_transform_to_mouse':
+            if (meshmachine or decalmachine) and lastop.bl_idname == 'OBJECT_OT_transform_to_mouse':
                 # print("inserting an asset")
                 # start = time.time()
 
-                for obj in context.scene.objects:
-                    if obj.MM.isstashobj:
+                # for obj in context.scene.objects:
+                for obj in context.visible_objects:
+                    if meshmachine and obj.MM.isstashobj:
                         # print(" STASH!")
 
                         for col in obj.users_collection:
                             # print(f"  unlinking {obj.name} from {col.name}")
                             col.objects.unlink(obj)
 
-                    if obj.DM.isbackup:
+                    if decalmachine and obj.DM.isbackup:
                         # print(" DECAL BACKUP!")
 
                         for col in obj.users_collection:

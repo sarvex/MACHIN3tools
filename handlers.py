@@ -6,7 +6,7 @@ from . utils.group import update_group_name, select_group_children
 from . utils.light import adjust_lights_for_rendering, get_area_light_poll
 from . utils.view import sync_light_visibility
 
-# import time
+import time
 
 
 axesHUD = None
@@ -112,7 +112,7 @@ def update_asset(none):
                             # print(f"  unlinking {obj.name} from {col.name}")
                             col.objects.unlink(obj)
 
-                # print(f" done, after {time.time() - start:.20f} seconds")
+                # print(f" MACHIN3tools asset drop check done, after {time.time() - start:.20f} seconds")
 
 
 @persistent

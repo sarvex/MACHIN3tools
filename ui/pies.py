@@ -970,6 +970,7 @@ class PieShading(Menu):
 
         r = row.row(align=True)
         r.active = hasobjectaxes
+        r.prop(m3, "object_axes_screenspace", text="", icon='WORKSPACE')
         r.prop(m3, "object_axes_size", text="")
         r.prop(m3, "object_axes_alpha", text="")
 

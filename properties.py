@@ -369,6 +369,7 @@ class M3SceneProperties(bpy.types.PropertyGroup):
 
     object_axes_size: FloatProperty(name="Object Axes Size", default=0.3, min=0)
     object_axes_alpha: FloatProperty(name="Object Axes Alpha", default=0.75, min=0, max=1)
+    object_axes_screenspace: BoolProperty(name="Ojects Axes in Screen Space", default=True)
 
     adjust_lights_on_render: BoolProperty(name="Adjust Lights when Rendering", description="Adjust Lights Area Lights when Rendering, to better match Eevee and Cycles", default=False)
     adjust_lights_on_render_divider: FloatProperty(name="Divider used to calculate Cycles Light Strength from Eeeve Light Strength", default=4, min=1)

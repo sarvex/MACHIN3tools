@@ -65,7 +65,7 @@ class Customize(bpy.types.Operator):
             # just duplicate the workspace
             elif event.ctrl:
                 self.add_workspaces(context)
-
+                self.customize_workspace_pie(context)
 
         return {'FINISHED'}
 
@@ -1348,7 +1348,6 @@ class Customize(bpy.types.Operator):
             """
 
 
-
             # NODE EDITOR
 
             km = kc.keymaps.get("Node Editor")
@@ -1833,6 +1832,48 @@ class Customize(bpy.types.Operator):
 
         for name, ws in zip(names, bpy.data.workspaces[1:]):
             ws.name = name
+
+    def customize_workspace_pie(self, context):
+        print("\n» Customizing Workspace Pie")
+
+        p = get_prefs()
+
+        for piedir in ['left', 'right', 'bottom', 'top', 'top_left', 'top_right', 'bottom_left', 'bottom_right']:
+
+            if piedir == 'left':
+                setattr(p, f'pie_workspace_{piedir}_name', 'General')
+                setattr(p, f'pie_workspace_{piedir}_text', 'MACHNIN3')
+                setattr(p, f'pie_workspace_{piedir}_icon', 'VIEW3D')
+
+            elif piedir == 'right':
+                setattr(p, f'pie_workspace_{piedir}_name', 'Compositing')
+                setattr(p, f'pie_workspace_{piedir}_text', 'Compositing')
+                setattr(p, f'pie_workspace_{piedir}_icon', 'NODE_COMPOSITING')
+
+            elif piedir == 'bottom':
+                setattr(p, f'pie_workspace_{piedir}_name', 'Scripting')
+                setattr(p, f'pie_workspace_{piedir}_text', 'Scripting')
+                setattr(p, f'pie_workspace_{piedir}_icon', 'CONSOLE')
+
+            elif piedir == 'top':
+                setattr(p, f'pie_workspace_{piedir}_name', 'Material')
+                setattr(p, f'pie_workspace_{piedir}_text', 'Material')
+                setattr(p, f'pie_workspace_{piedir}_icon', 'MATERIAL_DATA')
+
+            elif piedir == 'top_left':
+                setattr(p, f'pie_workspace_{piedir}_name', 'UVs')
+                setattr(p, f'pie_workspace_{piedir}_text', 'UVs')
+                setattr(p, f'pie_workspace_{piedir}_icon', 'GROUP_UVS')
+
+            elif piedir == 'top_right':
+                setattr(p, f'pie_workspace_{piedir}_name', 'World')
+                setattr(p, f'pie_workspace_{piedir}_text', 'World')
+                setattr(p, f'pie_workspace_{piedir}_icon', 'WORLD')
+
+            else:
+                setattr(p, f'pie_workspace_{piedir}_name', '')
+                setattr(p, f'pie_workspace_{piedir}_text', '')
+                setattr(p, f'pie_workspace_{piedir}_icon', '')
 
 
 class RestoreKeymaps(bpy.types.Operator):

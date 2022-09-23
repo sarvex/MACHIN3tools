@@ -124,7 +124,7 @@ def axes_HUD(scene):
     if axesHUD and "RNA_HANDLE_REMOVED" in str(axesHUD):
         axesHUD = None
 
-    axes_objects = [obj for obj in bpy.context.visible_objects if obj.M3.draw_axes]
+    axes_objects = [obj for obj in getattr(bpy.context, 'visible_objects', []) if obj.M3.draw_axes]
     active = getattr(bpy.context, 'active_object', None)
 
     if scene.M3.draw_active_axes and active and active not in axes_objects:

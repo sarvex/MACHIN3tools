@@ -369,8 +369,8 @@ class SmartVert(bpy.types.Operator):
             else:
                 # init mousepos and cursor warp the cursor too, as it's called from the HyperCursor Edit Edge pie menu
                 wm = context.window_manager
-                context.window.cursor_warp(int(wm.hyper_mousepos[0]), int(wm.hyper_mousepos[1] + 20 * context.preferences.view.ui_scale))
-                self.mousepos = Vector(wm.hyper_mousepos)
+                context.window.cursor_warp(int(wm.hyper_mousepos[0]), int(wm.hyper_mousepos[1]))
+                self.mousepos = Vector(wm.hyper_mousepos_region)
 
                 self.bm = bmesh.new()
                 self.bm.from_mesh(self.active.data)

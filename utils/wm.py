@@ -212,7 +212,15 @@ def get_last_operators(context, debug=False):
         # HyperCursor
 
         elif idname == 'machin3.add_object_at_cursor':
-            prop = getattr(op, 'remove', False)
+            is_pipe_init = getattr(op, 'is_pipe_init', False)
+
+            if is_pipe_init:
+                label = 'Initiate Pipe Creation'
+
+            else:
+                objtype = getattr(op, 'type', False)
+                label = f"Add {objtype.title()} at Cursor"
+
 
         elif idname == 'machin3.transform_cursor':
             mode = getattr(op, 'mode', False).capitalize()

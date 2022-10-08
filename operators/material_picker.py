@@ -5,6 +5,7 @@ from mathutils import Vector
 from .. utils.raycast import cast_obj_ray_from_mouse, cast_bvh_ray_from_mouse
 from .. utils.draw import draw_label
 from .. utils.registration import get_prefs
+from .. items import alt
 
 
 def draw_material_pick_status(self, context):

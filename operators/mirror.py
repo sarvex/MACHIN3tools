@@ -444,8 +444,6 @@ class Mirror(bpy.types.Operator):
 
             # get aligned and mislalignment mods
             self.aligned, self.misaligned = self.get_misaligned_mods(context, self.active, self.mx, debug=False)
-            # print(self.aligned)
-            # printd(self.misaligned)
 
             if self.misaligned:
 
@@ -772,16 +770,17 @@ class Mirror(bpy.types.Operator):
 
             origin = mx.to_translation()
 
-            # compare the x axes of the mirrored and mirror objects
-            x = mx.to_3x3().normalized() @ Vector((1, 0, 0))
-            mo_x = mo_mx.to_3x3().normalized() @ Vector((1, 0, 0))
+            # compare a vector made up of all three axis for both objects
+            # NOTE: previously we only compared X, but two objects can have X aligned, and still be misalgined!
+            xyz = (mx.to_3x3() @ Vector((1, 1, 1))).normalized()
+            mo_xyz = (mo_mx.to_3x3() @ Vector((1, 1, 1))).normalized()
 
             if debug:
-                draw_vector(x * 1.1, origin=origin, color=yellow, modal=False)
-                draw_vector(mo_x, origin=origin, color=blue, modal=False)
+                draw_vector(xyz * 1.1, origin=origin, color=yellow, modal=False)
+                draw_vector(mo_xyz, origin=origin, color=blue, modal=False)
                 context.area.tag_redraw()
 
-            dot = round(x.dot(mo_x), 6)
+            dot = round(xyz.dot(mo_xyz), 6)
 
             # if there is a misalignment, populate the dictionary
             if dot != 1:

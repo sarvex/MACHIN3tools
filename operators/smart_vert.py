@@ -12,6 +12,7 @@ from .. utils.math import average_locations, get_center_between_verts, get_face_
 from .. utils.selection import get_edges_vert_sequences, get_selection_islands
 from .. utils.registration import get_addon
 from .. utils.system import printd
+from .. utils.property import step_enum
 from .. items import smartvert_mode_items, smartvert_merge_type_items, smartvert_path_type_items, ctrl, alt
 
 from .. colors import yellow, white, green
@@ -603,6 +604,16 @@ class SmartVert(bpy.types.Operator):
 
         path1 = get_shortest_path(bm, *pair1, topo=topo, select=True)
         path2 = get_shortest_path(bm, *pair2, topo=topo, select=True)
+
+        # in some rare situations with TOPO pathtype, a verts can end up in both paths, which will cause an exception later one
+        is_any_in_both = any(v in path2 for v in path1)
+
+        # so check for that and get the paths again with the other path type
+        if is_any_in_both:
+            path1 = get_shortest_path(bm, *pair1, topo=not topo, select=True)
+            path2 = get_shortest_path(bm, *pair2, topo=not topo, select=True)
+
+            self.pathtype = step_enum(self.pathtype, smartvert_path_type_items, step=1, loop=True)
 
         return path1, path2
 

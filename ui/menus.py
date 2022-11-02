@@ -31,6 +31,7 @@ class MenuMACHIN3toolsObjectContextMenu(bpy.types.Menu):
         if p.activate_select:
             layout.operator("machin3.select_center_objects", text="Select Center Objects")
             layout.operator("machin3.select_wire_objects", text="Select Wire Objects")
+            layout.operator("machin3.select_hierarchy", text="Select Hierarchy")
 
         if p.activate_apply:
             layout.operator("machin3.apply_transformations", text="Apply Transformations")

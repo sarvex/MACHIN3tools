@@ -1,11 +1,14 @@
 import bpy
-from bpy.props import EnumProperty
+from bpy.props import EnumProperty, BoolProperty
 from mathutils import Vector
+# from .. items import axis_items
 
 
 axis_items = [("0", "X", ""),
               ("1", "Y", ""),
               ("2", "Z", "")]
+
+# TODO: use the axis_items in items.py?
 
 
 class SelectCenterObjects(bpy.types.Operator):
@@ -77,5 +80,59 @@ class SelectWireObjects(bpy.types.Operator):
                 obj.hide_set(True)
             else:
                 obj.select_set(True)
+
+        return {'FINISHED'}
+
+
+class SelectHierarchy(bpy.types.Operator):
+    bl_idname = "machin3.select_hierarchy"
+    bl_label = "MACHIN3: Select Hierarchy"
+    bl_description = "Select Hierarchy Down"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    include_parent: BoolProperty(name="Include Parent", description="Include the Parent in the Selection", default=False)
+
+    recursive: BoolProperty(name="Select Recursive Children", description="Select Children Recursively", default=True)
+    unhide: BoolProperty(name="Select Hidden Children", description="Unhide and Select Hidden Children", default=False)
+
+    def draw(self, context):
+        layout = self.layout
+
+        column = layout.column(align=True)
+
+        row = column.row(align=True)
+        row.prop(self, 'include_parent', toggle=True)
+
+        row = column.row(align=True)
+        row.prop(self, 'recursive', text="Recursive", toggle=True)
+        row.prop(self, 'unhide', text="Unhide", toggle=True)
+
+    def invoke(self, context, event):
+        # self.include_parent = event.shift
+
+        # self.recursive = event.ctrl
+        # self.unhide = event.alt
+        return self.execute(context)
+
+    def execute(self, context):
+        sel = context.selected_objects
+
+        for obj in sel:
+            if self.recursive:
+                children = [(c, c.visible_get()) for c in obj.children_recursive if c.name in context.view_layer.objects]
+            else:
+                children = [(c, c.visible_get()) for c in obj.children if c.name in context.view_layer.objects]
+
+            for c, vis in children:
+                # unhide
+                if self.unhide and not vis:
+                    c.hide_set(False)
+
+                # select
+                c.select_set(True)
+
+            # set parent selection state
+            obj.select_set(self.include_parent)
+
 
         return {'FINISHED'}

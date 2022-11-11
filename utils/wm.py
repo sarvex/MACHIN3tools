@@ -260,6 +260,11 @@ def get_last_operators(context, debug=False):
             else:
                 label = 'Remove Hyper Bevel'
 
+        elif idname == 'machin3.point_cursor':
+            align_y_axis = getattr(op, 'align_y_axis')
+            label = 'Point Cursor'
+            prop = 'Y' if align_y_axis else 'Z'
+
         operators.append((addon, label, idname, prop))
 
     # if there aren't any last ops, it's because you've just done an undo

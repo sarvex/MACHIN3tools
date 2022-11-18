@@ -8,7 +8,7 @@ from .. utils.property import step_list
 class Open(bpy.types.Operator):
     bl_idname = "machin3.filebrowser_open"
     bl_label = "MACHIN3: Open in System's filebrowser"
-    bl_description = "Open the current location in the System's own filebrowser\nALT: Open . blend file"
+    bl_description = "Open the current location in the System's own filebrowser\nALT: Open .blend file"
 
     path: StringProperty(name="Path")
     blend_file: BoolProperty(name="Open .blend file")

@@ -1399,7 +1399,8 @@ class PieShading(Menu):
         row.label(text='Cycles Settings')
         row.prop(context.scene.M3, 'cycles_device', expand=True)
 
-        row = column.split(factor=0.5, align=True)
+        row = column.split(factor=0.33, align=True)
+        row.prop(context.scene.cycles, 'use_preview_denoising', text='Denoise')
         row.prop(context.scene.cycles, 'use_adaptive_sampling', text='Adaptive')
         row.prop(context.scene.cycles, 'seed')
 

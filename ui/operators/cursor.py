@@ -5,8 +5,7 @@ from ... utils.math import get_center_between_verts, average_locations, create_r
 from ... utils.math import get_loc_matrix, get_rot_matrix, get_sca_matrix
 from ... utils.scene import set_cursor
 from ... utils.ui import popup_message
-from ... utils.registration import get_prefs, get_addon
-from ... utils.tools import get_active_tool
+from ... utils.registration import get_prefs
 from ... utils.object import compensate_children
 
 
@@ -68,9 +67,6 @@ class CursorToSelected(bpy.types.Operator):
         if not context.space_data.overlay.show_cursor:
             context.space_data.overlay.show_cursor = True
 
-        # only actually set the presets if hyper cursor tools are not active
-        set_transform_preset = 'machin3.tool_hyper_cursor' not in get_active_tool(context).idname
-
         active = context.active_object
         sel = [obj for obj in context.selected_objects if obj != active]
         cmx = context.scene.cursor.matrix
@@ -80,7 +76,6 @@ class CursorToSelected(bpy.types.Operator):
             context.view_layer.objects.active = sel[0]
             sel.remove(active)
 
-
         if event.alt and event.ctrl:
             popup_message("Hold down ATL, CTRL or neither, not both!", title="Invalid Modifier Keys")
             return {'CANCELLED'}
@@ -89,18 +84,16 @@ class CursorToSelected(bpy.types.Operator):
         if context.mode == 'OBJECT' and active and (not sel or active.M3.is_group_empty):
             self.cursor_to_active_object(active, cmx, only_location=event.alt, only_rotation=event.ctrl)
 
-            if set_transform_preset:
-                if get_prefs().activate_transform_pie and get_prefs().cursor_set_transform_preset:
-                    self.set_cursor_transform_preset(context)
+            if get_prefs().activate_transform_pie and get_prefs().cursor_set_transform_preset:
+                self.set_cursor_transform_preset(context)
 
             return {'FINISHED'}
 
         elif context.mode == 'EDIT_MESH':
             self.cursor_to_editmesh(context, active, cmx, only_location=event.alt, only_rotation=event.ctrl)
 
-            if set_transform_preset:
-                if get_prefs().activate_transform_pie and get_prefs().cursor_set_transform_preset:
-                    self.set_cursor_transform_preset(context)
+            if get_prefs().activate_transform_pie and get_prefs().cursor_set_transform_preset:
+                self.set_cursor_transform_preset(context)
 
             return {'FINISHED'}
 

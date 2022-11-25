@@ -245,7 +245,7 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
 
     obj_mode_rotate_around_active: BoolProperty(name="Rotate Around Selection, but only in Object Mode", default=False)
     custom_views_use_trackball: BoolProperty(name="Force Trackball Navigation when using Custom Views", default=True)
-    custom_views_set_transform_preset: BoolProperty(name="Set Transform Preset when using Custom Views", default=True)
+    custom_views_set_transform_preset: BoolProperty(name="Set Transform Preset when using Custom Views", default=False)
     show_orbit_selection: BoolProperty(name="Show Orbit around Active", default=True)
     show_orbit_method: BoolProperty(name="Show Orbit Method Selection", default=True)
 

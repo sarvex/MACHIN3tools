@@ -25,6 +25,7 @@ hardops = None
 hypercursor = None
 hypercursorlast = None
 
+wavefront_addon = None
 
 
 class PieModes(Menu):
@@ -770,23 +771,56 @@ class PieSave(Menu):
             column.operator('machin3.screen_cast', text=f"{text} Screen Cast", depress=screencast, icon=icon)
 
     def draw_center_column_top(self, context, layout):
+        global wavefront_addon
+
+        # check if wavefront addon is used, or if the new native, but experimental exporter is used
+        if wavefront_addon is None:
+            wavefront_addon = get_addon('Wavefront OBJ format')[0]
+
         column = layout.column(align=True)
 
-        row = column.split(factor=0.25, align=True)
-        row.label(text="OBJ")
-        r = row.row(align=True)
-        r.operator("import_scene.obj", text="Import", icon_value=get_icon('import'))
-        r.operator("export_scene.obj", text="Export", icon_value=get_icon('export')).use_selection = True if context.selected_objects else False
 
-        row = column.split(factor=0.25, align=True)
-        row.label(text="FBX")
-        r = row.row(align=True)
-        r.operator("import_scene.fbx", text="Import", icon_value=get_icon('import'))
-        op = r.operator("export_scene.fbx", text="Export", icon_value=get_icon('export'))
-        op.use_selection = True if context.selected_objects else False
+        #  .obj
 
-        if get_prefs().fbx_export_apply_scale_all:
-            op.apply_scale_options='FBX_SCALE_ALL'
+        if get_prefs().save_pie_show_obj_export:
+            row = column.split(factor=0.25, align=True)
+            row.label(text="OBJ")
+            r = row.row(align=True)
+
+            if wavefront_addon:
+                r.operator("import_scene.obj", text="Import", icon_value=get_icon('import'))
+                r.operator("export_scene.obj", text="Export", icon_value=get_icon('export')).use_selection = True if context.selected_objects else False
+            else:
+                r.operator("wm.obj_import", text="Import", icon_value=get_icon('import'))
+                r.operator("wm.obj_export", text="Export", icon_value=get_icon('export')).export_selected_objects = True if context.selected_objects else False
+
+
+        #  .fbx
+
+        if get_prefs().save_pie_show_fbx_export:
+            row = column.split(factor=0.25, align=True)
+            row.label(text="FBX")
+            r = row.row(align=True)
+            r.operator("import_scene.fbx", text="Import", icon_value=get_icon('import'))
+
+            op = r.operator("export_scene.fbx", text="Export", icon_value=get_icon('export'))
+            op.use_selection = True if context.selected_objects else False
+
+            if get_prefs().fbx_export_apply_scale_all:
+                op.apply_scale_options='FBX_SCALE_ALL'
+
+
+        # .usd
+
+        if get_prefs().save_pie_show_usd_export:
+            row = column.split(factor=0.25, align=True)
+            row.label(text="USD")
+            r = row.row(align=True)
+            r.operator("wm.usd_import", text="Import", icon_value=get_icon('import'))
+
+            op = r.operator("wm.usd_export", text="Export", icon_value=get_icon('export'))
+            op.selected_objects_only = True if context.selected_objects else False
+
 
     def draw_center_column_bottom(self, layout):
         column = layout.column(align=True)

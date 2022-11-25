@@ -225,7 +225,11 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
 
     # PROPERTIES
 
-    fbx_export_apply_scale_all: BoolProperty(name="Use 'Fbx All' for Applying Scale", description="This is useful for Unity, but bad for Unreal Engine", default=True)
+    save_pie_show_obj_export: BoolProperty(name="Show .obj Export", default=True)
+    save_pie_show_fbx_export: BoolProperty(name="Show .fbx Export", default=True)
+    save_pie_show_usd_export: BoolProperty(name="Show .usd Export", default=True)
+
+    fbx_export_apply_scale_all: BoolProperty(name="Use 'Fbx All' for Applying Scale", description="This is useful for Unity, but bad for Unreal Engine", default=False)
 
     switchmatcap1: StringProperty(name="Matcap 1", update=update_switchmatcap1)
     switchmatcap2: StringProperty(name="Matcap 2", update=update_switchmatcap2)
@@ -907,14 +911,45 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
         # SAVE PIE
 
         if getattr(bpy.types, "MACHIN3_MT_save_pie", False):
+
+            # Import / Export
+
             bb = b.box()
-            bb.label(text="Save Pie: Export")
+            bb.label(text="Save Pie: Import/Export")
 
             column = bb.column(align=True)
             row = column.row(align=True)
             r = row.split(factor=0.2, align=True)
-            r.prop(self, "fbx_export_apply_scale_all", text="True" if self.fbx_export_apply_scale_all else "False", toggle=True)
-            r.label(text="Use 'Fbx All' for Applying Scale")
+            r.prop(self, "save_pie_show_obj_export", text="True" if self.save_pie_show_obj_export else "False", toggle=True)
+            r.label(text="Show .obj Import/Export")
+
+            if self.save_pie_show_fbx_export:
+                row = column.row(align=True)
+
+                split = row.split(factor=0.5, align=True)
+
+                r = split.split(factor=0.415, align=True)
+                r.prop(self, "save_pie_show_fbx_export", text="True" if self.save_pie_show_fbx_export else "False", toggle=True)
+                r.label(text="Show .fbx Import/Export")
+
+                r = split.split(factor=0.395, align=True)
+                r.prop(self, "fbx_export_apply_scale_all", text="True" if self.fbx_export_apply_scale_all else "False", toggle=True)
+                r.label(text="Use 'Fbx All' for Applying Scale")
+
+            else:
+                row = column.row(align=True)
+                r = row.split(factor=0.2, align=True)
+                r.prop(self, "save_pie_show_fbx_export", text="True" if self.save_pie_show_fbx_export else "False", toggle=True)
+                r.label(text="Show .fbx Import/Export")
+
+
+            row = column.row(align=True)
+            r = row.split(factor=0.2, align=True)
+            r.prop(self, "save_pie_show_usd_export", text="True" if self.save_pie_show_usd_export else "False", toggle=True)
+            r.label(text="Show .usd Import/Export")
+
+
+            # Screen Cast
 
             bb = b.box()
             bb.label(text="Save Pie: Screen Cast")
@@ -925,23 +960,25 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
             r.prop(self, "show_screencast", text="True" if self.show_screencast else "False", toggle=True)
             r.label(text="Show Screencast in Save Pie")
 
-            split = bb.split(factor=0.5)
-            col = split.column(align=True)
 
-            row = col.row(align=True)
-            r = row.split(factor=0.4, align=True)
-            r.prop(self, "screencast_operator_count", text="")
-            r.label(text="Operator Count")
+            if self.show_screencast:
+                split = bb.split(factor=0.5)
+                col = split.column(align=True)
 
-            row = col.row(align=True)
-            r = row.split(factor=0.4, align=True)
-            r.prop(self, "screencast_fontsize", text="")
-            r.label(text="Font Size")
+                row = col.row(align=True)
+                r = row.split(factor=0.4, align=True)
+                r.prop(self, "screencast_operator_count", text="")
+                r.label(text="Operator Count")
 
-            col = split.column()
-            col.prop(self, "screencast_highlight_machin3")
-            col.prop(self, "screencast_show_addon")
-            col.prop(self, "screencast_show_idname")
+                row = col.row(align=True)
+                r = row.split(factor=0.4, align=True)
+                r.prop(self, "screencast_fontsize", text="")
+                r.label(text="Font Size")
+
+                col = split.column()
+                col.prop(self, "screencast_highlight_machin3")
+                col.prop(self, "screencast_show_addon")
+                col.prop(self, "screencast_show_idname")
 
 
         # SHADING PIE

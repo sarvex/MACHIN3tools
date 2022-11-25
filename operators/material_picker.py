@@ -42,12 +42,13 @@ class MaterialPicker(bpy.types.Operator):
     def draw_HUD(self, args):
         context, event = args
 
-        draw_label(context, title="Assign" if event.alt else "Pick", coords=self.mousepos + Vector((20, 10)), center=False)
+        draw_label(context, title="Assign" if self.is_assign else "Pick", coords=self.mousepos + Vector((20, 10)), center=False)
 
     def modal(self, context, event):
         context.area.tag_redraw()
 
         self.mousepos = Vector((event.mouse_region_x, event.mouse_region_y))
+        self.is_assign = event.alt
 
         if event.type == 'LEFTMOUSE':
             if context.mode == 'OBJECT':
@@ -68,8 +69,8 @@ class MaterialPicker(bpy.types.Operator):
                 if hitobj.material_slots and hitobj.material_slots[matindex].material:
                     mat = hitobj.material_slots[matindex].material
 
-                    if event.alt:
-                        sel = [obj for obj in context.selected_objects if obj != hitobj]
+                    if self.is_assign:
+                        sel = [obj for obj in context.selected_objects if obj != hitobj and obj.data]
 
                         for obj in sel:
                             if not obj.material_slots:
@@ -110,9 +111,10 @@ class MaterialPicker(bpy.types.Operator):
             context.visible_objects[0].select_set(context.visible_objects[0].select_get())
 
     def invoke(self, context, event):
-        self.assign = event.alt
 
         # init
+        self.is_assign = False 
+
         context.window.cursor_set("EYEDROPPER")
         self.mousepos = Vector((event.mouse_region_x, event.mouse_region_y))
 

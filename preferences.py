@@ -250,7 +250,7 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
     show_orbit_method: BoolProperty(name="Show Orbit Method Selection", default=True)
 
     cursor_show_to_grid: BoolProperty(name="Show Cursor and Selected to Grid", default=False)
-    cursor_set_transform_preset: BoolProperty(name="Set Transform Preset when Setting Cursor", default=True)
+    cursor_set_transform_preset: BoolProperty(name="Set Transform Preset when Setting Cursor", default=False)
 
     snap_show_absolute_grid: BoolProperty(name="Show Absolute Grid Snapping", default=False)
     snap_show_volume: BoolProperty(name="Show Volume Snapping", default=False)

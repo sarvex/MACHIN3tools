@@ -38,6 +38,11 @@ class PieModes(Menu):
 
         active = context.active_object
 
+        global hypercursor
+
+        if hypercursor is None:
+            hypercursor = get_addon("HyperCursor")[0]
+
         pie = layout.menu_pie()
 
         if active:
@@ -71,7 +76,22 @@ class PieModes(Menu):
                             self.draw_mesh_modes(context, pie)
 
                             # 9 - TOP - RIGHT
-                            pie.separator()
+                            if context.mode == 'EDIT_MESH' and hypercursor:
+                                box = pie.split()
+                                column = box.column()
+
+                                row = column.row(align=True)
+                                row.scale_y = 1.2
+
+                                row.label(text="Gizmos")
+
+                                row.operator("machin3.toggle_gizmo_data_layer_preview", text="Preview", depress=active.HC.show_geometry_gizmo_previews)
+
+                                if tuple(bpy.context.scene.tool_settings.mesh_select_mode) in [(False, True, False), (False, False, True)]:
+                                    row.operator("machin3.toggle_gizmo", text="Toggle")
+
+                            else:
+                                pie.separator()
 
                             # 1 - BOTTOM - LEFT
                             if get_prefs().activate_surface_slide:

@@ -1,7 +1,7 @@
 import bpy
 from bpy.props import IntProperty, StringProperty, BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty
 import os
-from . utils.ui import get_icon, draw_keymap_items
+from . utils.ui import get_icon, draw_keymap_items, get_keymap_item
 from . utils.registration import activate, get_path, get_name, get_addon
 from . items import preferences_tabs, matcap_background_type_items
 
@@ -911,6 +911,21 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
         # SAVE PIE
 
         if getattr(bpy.types, "MACHIN3_MT_save_pie", False):
+
+            # Startup File
+
+            kmi = get_keymap_item('Window', 'machin3.save_versioned_startup_file')
+
+            if kmi:
+                bb = b.box()
+                bb.label(text="Save Pie: Versioned Startup File")
+
+                column = bb.column(align=True)
+                row = column.row(align=True)
+                r = row.split(factor=0.2, align=True)
+                r.prop(kmi, "active", text='Enabled' if kmi.active else 'Disabled')
+                r.label(text="Use CTRL + U keymap override")
+
 
             # Import / Export
 

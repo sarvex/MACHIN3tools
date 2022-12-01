@@ -180,6 +180,24 @@ class SaveIncremental(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class SaveVersionedStartupFile(bpy.types.Operator):
+    bl_idname = "machin3.save_versioned_startup_file"
+    bl_label = "Save Versioned Startup File"
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        config_path = bpy.utils.user_resource('CONFIG')
+        startup_path = os.path.join(config_path, 'startup.blend')
+
+        biggest_idx = max([int(f.replace('startup.blend', '')) for f in os.listdir(bpy.utils.user_resource('CONFIG')) if 'startup.blend' in f and f != 'startup.blend'])
+        versioned_path = os.rename(startup_path, os.path.join(config_path, f'startup.blend{biggest_idx + 1}'))
+
+        bpy.ops.wm.save_homefile()
+
+        self.report({'INFO'}, 'Versioned Startup File saved')
+        return {'FINISHED'}
+
+
 class LoadMostRecent(bpy.types.Operator):
     bl_idname = "machin3.load_most_recent"
     bl_label = "Load Most Recent"

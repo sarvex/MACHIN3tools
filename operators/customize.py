@@ -4,7 +4,7 @@ import shutil
 from .. utils.registration import get_prefs
 from .. utils.system import makedir
 from .. utils.view import reset_viewport
-from .. utils.ui import kmi_to_string
+from .. utils.ui import kmi_to_string, get_keymap_item
 
 
 class Customize(bpy.types.Operator):
@@ -1441,6 +1441,14 @@ class Customize(bpy.types.Operator):
         else:
             modify_keymaps32(kc)
             add_keymaps32(kc)
+
+
+        # enable the save pie's versioned startup file keymap override
+        if getattr(bpy.types, "MACHIN3_MT_save_pie", False):
+            kmi = get_keymap_item('Window', 'machin3.save_versioned_startup_file')
+
+            if kmi:
+                kmi.active = True
 
 
         get_prefs().custom_keymaps = False

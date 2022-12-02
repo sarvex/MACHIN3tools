@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import IntProperty
+from bpy.props import IntProperty, BoolProperty
 import bmesh
 from math import radians
 
@@ -10,19 +10,67 @@ class ShadeSmooth(bpy.types.Operator):
     bl_description = "Set smooth shading in object and edit mode\nALT: Mark edges sharp if face angle > auto smooth angle"
     bl_options = {'REGISTER', 'UNDO'}
 
+    sharpen: BoolProperty(name="Set Sharps", default=False)
+
+    include_children: BoolProperty(name="Include Children", default=False)
+    include_boolean_objs: BoolProperty(name="Include Boolean Objects", default=False)
+
+    def draw(self, context):
+        layout = self.layout
+        column = layout.column(align=True)
+
+        column.prop(self, 'sharpen', toggle=True)
+
+        row = column.row(align=True)
+        row.prop(self, 'include_children', toggle=True)
+        row.prop(self, 'include_boolean_objs', toggle=True)
+
     def invoke(self, context, event):
+        self.sharpen = event.alt
+        self.include_boolean_objs = event.ctrl
+        self.include_children = event.shift
+        return self.execute(context)
+
+    def execute(self, context):
         if context.mode == "OBJECT":
+
+            selected = [obj for obj in context.selected_objects]
+
+            children = [(ob, ob.visible_get()) for obj in selected for ob in obj.children_recursive if ob.name in context.view_layer.objects] if self.include_children else []
+            boolean_objs = [(mod.object, mod.object.visible_get()) for obj in selected for mod in obj.modifiers if mod.type == 'BOOLEAN' and mod.object and mod.object.name in context.view_layer.objects] if self.include_boolean_objs else []
+            more_objects = set(children + boolean_objs)
+
+            # print()
+            # print("selected:", [obj.name for obj in selected])
+            # print("children:", [obj.name for obj, _ in children])
+            # print("boolean objs:", [obj.name for obj, _ in boolean_objs])
+            # print("more objs:", [obj.name for obj, _ in more_objects])
+
+            # ensure children/boolean objects are visible and selected
+            for obj, state in more_objects:
+                if not state:
+                    obj.hide_set(False)
+                obj.select_set(True)
+
+            # shade everything smooth
             bpy.ops.object.shade_smooth()
 
+            # restore child/boolean object visibility states
+            for obj, state in more_objects:
+                obj.hide_set(not state)
+
             # set sharps based on face angles + activate auto smooth + enable sharp overlays
-            if event.alt:
-                for obj in context.selected_objects:
+            if self.sharpen:
+                for obj in selected:
+                    self.set_sharps(context.mode, obj)
+
+                for obj, _ in more_objects:
                     self.set_sharps(context.mode, obj)
 
                 context.space_data.overlay.show_edge_sharp = True
 
         elif context.mode == "EDIT_MESH":
-            if event.alt:
+            if self.set_sharps:
                 self.set_sharps(context.mode, context.active_object)
 
                 context.space_data.overlay.show_edge_sharp = True

@@ -1124,7 +1124,8 @@ class PieShading(Menu):
             row = column.split(factor=0.55, align=True)
             r = row.row(align=True)
             r.active = not mesh.has_custom_normals
-            for angle in [30, 60, 90, 180]:
+
+            for angle in [10, 20, 30, 60, 180]:
                 r.operator("machin3.toggle_auto_smooth", text=str(angle)).angle = angle
 
             r = row.row(align=True)

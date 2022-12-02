@@ -1612,6 +1612,8 @@ class Customize(bpy.types.Operator):
     def shading(self, context):
         print("\n» Setting up Shading and Rendering")
 
+        # workbench
+
         areas = [area for screen in context.workspace.screens for area in screen.areas if area.type == "VIEW_3D"]
 
         for area in areas:
@@ -1665,22 +1667,37 @@ class Customize(bpy.types.Operator):
             print(" Disabled shading.use_scene_world_render")
             shading.use_scene_world_render = False
 
-            eevee = context.scene.eevee
 
-            print(" Enabled eevee.use_ssr")
-            eevee.use_ssr = True
+        # eevee 
 
-            print(" Enabled eevee.use_gtao")
-            eevee.use_gtao = True
+        eevee = context.scene.eevee
 
-            print(" Disabled eevee.use_volumetric_lights")
-            eevee.use_volumetric_lights = False
+        print(" Enabled eevee.use_ssr")
+        eevee.use_ssr = True
 
-            print(" Changed Render Engine to CYCLES")
-            context.scene.render.engine = 'CYCLES'
+        print(" Enabled eevee.use_gtao")
+        eevee.use_gtao = True
 
-            print(" Changed Cycles Devices to GPU")
-            context.scene.cycles.device = 'GPU'
+        print(" Disabled eevee.use_volumetric_lights")
+        eevee.use_volumetric_lights = False
+
+
+        # cycles
+
+        print(" Changed Render Engine to CYCLES")
+        context.scene.render.engine = 'CYCLES'
+
+        print(" Changed Cycles Devices to GPU")
+        context.scene.cycles.device = 'GPU'
+
+        print(" Enabled cycle.use_preview_denoising")
+        context.scene.cycles.use_preview_denoising = True
+
+        print(" Set cycles.preview_denoising_start_sample to 2")
+        context.scene.cycles.preview_denoising_start_sample = 2
+
+        print(" Set cycles.preview_denoising_input_passes to 'NONE'")
+        context.scene.cycles.preview_denoising_input_passes = 'RGB'
 
     def overlays(self, context):
         print("\n» Modifying Overlays")

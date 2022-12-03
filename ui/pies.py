@@ -1448,20 +1448,26 @@ class PieShading(Menu):
                 row.prop(context.scene.eevee, "volumetric_shadow_samples", text='Samples')
 
     def draw_cycles_box(self, context, view, layout):
+        cycles = context.scene.cycles
         column = layout.column(align=True)
-
+        
         row = column.split(factor=0.5, align=True)
         row.label(text='Cycles Settings')
         row.prop(context.scene.M3, 'cycles_device', expand=True)
 
         row = column.split(factor=0.33, align=True)
-        row.prop(context.scene.cycles, 'use_preview_denoising', text='Denoise')
-        row.prop(context.scene.cycles, 'use_adaptive_sampling', text='Adaptive')
-        row.prop(context.scene.cycles, 'seed')
+        row.prop(cycles, 'use_preview_denoising', text='Denoise')
+        row.prop(cycles, 'use_adaptive_sampling', text='Adaptive')
+        row.prop(cycles, 'seed')
 
         row = column.split(factor=0.5, align=True)
-        row.prop(context.scene.cycles, 'preview_samples', text='Viewport')
-        row.prop(context.scene.cycles, 'samples', text='Render')
+        row.prop(cycles, 'preview_samples', text='Viewport')
+        row.prop(cycles, 'samples', text='Render')
+
+        row = column.split(factor=0.33, align=True)
+        row.prop(cycles, 'use_fast_gi', text='Fast GI')
+        row.prop(cycles, 'ao_bounces', text="Viewport")
+        row.prop(cycles, 'ao_bounces_render', text="Render")
 
     def draw_light_adjust_box(self, context, m3, layout):
         column = layout.column(align=True)

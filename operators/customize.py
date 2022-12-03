@@ -1684,20 +1684,32 @@ class Customize(bpy.types.Operator):
 
         # cycles
 
+        cycles = context.scene.cycles
+
         print(" Changed Render Engine to CYCLES")
         context.scene.render.engine = 'CYCLES'
 
         print(" Changed Cycles Devices to GPU")
-        context.scene.cycles.device = 'GPU'
+        cycles.device = 'GPU'
 
         print(" Enabled cycle.use_preview_denoising")
-        context.scene.cycles.use_preview_denoising = True
+        cycles.use_preview_denoising = True
 
         print(" Set cycles.preview_denoising_start_sample to 2")
-        context.scene.cycles.preview_denoising_start_sample = 2
+        cycles.preview_denoising_start_sample = 2
 
         print(" Set cycles.preview_denoising_input_passes to 'NONE'")
-        context.scene.cycles.preview_denoising_input_passes = 'RGB'
+        cycles.preview_denoising_input_passes = 'RGB'
+
+        print(" Enabled Fast GI Approximation")
+        cycles.use_fast_gi = True
+
+        print(" Set cycles.ao_bounces to 2")
+        cycles.ao_bounces = 2
+
+        print(" Set cycles.ao_bounces_render to 2")
+        cycles.ao_bounces_render = 2
+
 
     def overlays(self, context):
         print("\n» Modifying Overlays")

@@ -4,6 +4,9 @@ import bmesh
 from math import radians
 
 
+# TODO: update descriptions
+
+
 class ShadeSmooth(bpy.types.Operator):
     bl_idname = "machin3.shade_smooth"
     bl_label = "Shade Smooth"
@@ -21,9 +24,10 @@ class ShadeSmooth(bpy.types.Operator):
 
         column.prop(self, 'sharpen', toggle=True)
 
-        row = column.row(align=True)
-        row.prop(self, 'include_children', toggle=True)
-        row.prop(self, 'include_boolean_objs', toggle=True)
+        if context.mode == 'OBJECT':
+            row = column.row(align=True)
+            row.prop(self, 'include_children', toggle=True)
+            row.prop(self, 'include_boolean_objs', toggle=True)
 
     def invoke(self, context, event):
         self.sharpen = event.alt
@@ -58,6 +62,12 @@ class ShadeSmooth(bpy.types.Operator):
             # restore child/boolean object visibility states
             for obj, state in more_objects:
                 obj.hide_set(not state)
+
+            # restore original selection
+            bpy.ops.object.select_all(action='DESELECT')
+            
+            for obj in selected:
+                obj.select_set(True)
 
             # set sharps based on face angles + activate auto smooth + enable sharp overlays
             if self.sharpen:
@@ -117,17 +127,71 @@ class ShadeFlat(bpy.types.Operator):
     bl_description = "Set flat shading in object and edit mode\nALT: Clear all sharps, bweights, creases and seams."
     bl_options = {'REGISTER', 'UNDO'}
 
+    clear: BoolProperty(name="Clear Sharps, BWeights, etc", default=False)
+
+    include_children: BoolProperty(name="Include Children", default=False)
+    include_boolean_objs: BoolProperty(name="Include Boolean Objects", default=False)
+
+    def draw(self, context):
+        layout = self.layout
+        column = layout.column(align=True)
+
+        column.prop(self, 'clear', toggle=True)
+
+        if context.mode == 'OBJECT':
+            row = column.row(align=True)
+            row.prop(self, 'include_children', toggle=True)
+            row.prop(self, 'include_boolean_objs', toggle=True)
+
     def invoke(self, context, event):
+        self.clear = event.alt
+        self.include_boolean_objs = event.ctrl
+        self.include_children = event.shift
+        return self.execute(context)
+
+    def execute(self, context):
         if context.mode == "OBJECT":
+            selected = [obj for obj in context.selected_objects]
+
+            children = [(ob, ob.visible_get()) for obj in selected for ob in obj.children_recursive if ob.name in context.view_layer.objects] if self.include_children else []
+            boolean_objs = [(mod.object, mod.object.visible_get()) for obj in selected for mod in obj.modifiers if mod.type == 'BOOLEAN' and mod.object and mod.object.name in context.view_layer.objects] if self.include_boolean_objs else []
+            more_objects = set(children + boolean_objs)
+
+            # print()
+            # print("selected:", [obj.name for obj in selected])
+            # print("children:", [obj.name for obj, _ in children])
+            # print("boolean objs:", [obj.name for obj, _ in boolean_objs])
+            # print("more objs:", [obj.name for obj, _ in more_objects])
+
+            # # ensure children/boolean objects are visible and selected
+            for obj, state in more_objects:
+                if not state:
+                    obj.hide_set(False)
+                obj.select_set(True)
+
+            # shade everything flat
             bpy.ops.object.shade_flat()
 
+            # restore child/boolean object visibility states
+            for obj, state in more_objects:
+                obj.hide_set(not state)
+
+            # restore original selection
+            bpy.ops.object.select_all(action='DESELECT')
+            
+            for obj in selected:
+                obj.select_set(True)
+
             # clear all sharps, bweights, seams and creases
-            if event.alt:
-                for obj in context.selected_objects:
+            if self.clear:
+                for obj in selected:
+                    self.clear_obj_sharps(obj)
+
+                for obj, _ in more_objects:
                     self.clear_obj_sharps(obj)
 
         elif context.mode == "EDIT_MESH":
-            if event.alt:
+            if self.clear:
                 self.clear_mesh_sharps(context.active_object.data)
 
             else:

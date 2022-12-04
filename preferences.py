@@ -96,6 +96,17 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
 
             self.dirty_keymaps = False
 
+    def update_auto_smooth_angle_presets(self, context):
+        if self.avoid_update:
+            self.avoid_update = False
+            return
+
+        try:
+            angles = [int(a) for a in self.auto_smooth_angle_presets.split(',')]
+        except:
+            self.avoid_update = True
+            self.auto_smooth_angle_presets = "10, 20, 30, 60, 180"
+
 
     # TOOL ACTIVATION Updates
 
@@ -234,6 +245,8 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
 
     matcap2_switch_background_type: EnumProperty(name="Matcap 2 Background Type", items=matcap_background_type_items, default="THEME")
     matcap2_switch_background_viewport_color: FloatVectorProperty(name="Matcap 2 Background Color", subtype='COLOR', default=[0.05, 0.05, 0.05], size=3, min=0, max=1)
+
+    auto_smooth_angle_presets: StringProperty(name="Autosmooth Angle Preset", default="10, 20, 30, 60, 180", update=update_auto_smooth_angle_presets)
 
 
     # Views Pie
@@ -1018,6 +1031,22 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
         # SHADING PIE
 
         if getattr(bpy.types, "MACHIN3_MT_shading_pie", False):
+
+            # Autosmooth
+
+            bb = b.box()
+            bb.label(text="Shading Pie: Autosmooth")
+
+            column = bb.column(align=True)
+
+            row = column.row(align=True)
+            r = row.split(factor=0.2, align=True)
+            r.label(text="Angle Presets")
+            r.prop(self, "auto_smooth_angle_presets", text='')
+
+
+            # Matcap Switch
+
             bb = b.box()
             bb.label(text="Shading Pie: Matcap Switch")
 

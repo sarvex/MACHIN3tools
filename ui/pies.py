@@ -1108,9 +1108,9 @@ class PieShading(Menu):
                 row.prop(active, "show_in_front", text="In Front")
 
 
-
         if active.type == "MESH":
             mesh = active.data
+            angles = [int(a) for a in get_prefs().auto_smooth_angle_presets.split(',')]
 
             column.separator()
             row = column.split(factor=0.55, align=True)
@@ -1125,7 +1125,7 @@ class PieShading(Menu):
             r = row.row(align=True)
             r.active = not mesh.has_custom_normals
 
-            for angle in [10, 20, 30, 60, 180]:
+            for angle in angles:
                 r.operator("machin3.toggle_auto_smooth", text=str(angle)).angle = angle
 
             r = row.row(align=True)

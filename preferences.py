@@ -62,25 +62,7 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
     bl_idname = get_name()
 
 
-    # APPENDMATS
-
-    def update_appendmatsname(self, context):
-        if self.avoid_update:
-            self.avoid_update = False
-            return
-
-        else:
-            if self.appendmatsname and self.appendmatsname not in self.appendmats:
-                am = self.appendmats.add()
-                am.name = self.appendmatsname
-
-                self.appendmatsIDX = len(self.appendmats) - 1
-
-            self.avoid_update = True
-            self.appendmatsname = ""
-
-
-    # CHECKS
+    # VERIFY INPUT Updates
 
     def update_switchmatcap1(self, context):
         if self.avoid_update:
@@ -115,7 +97,7 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
             self.dirty_keymaps = False
 
 
-    # RUNTIME TOOL ACTIVATION
+    # TOOL ACTIVATION Updates
 
     def update_activate_smart_vert(self, context):
         activate(self, register=self.activate_smart_vert, tool="smart_vert")
@@ -187,7 +169,7 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
         activate(self, register=self.activate_customize, tool="customize")
 
 
-    # RUNTIME PIE ACTIVATION
+    # PIE ACTIVATION Updates
 
     def update_activate_modes_pie(self, context):
         activate(self, register=self.activate_modes_pie, tool="modes_pie")
@@ -223,13 +205,23 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
         activate(self, register=self.activate_tools_pie, tool="tools_pie")
 
 
-    # PROPERTIES
+    # Save Pie
 
     save_pie_show_obj_export: BoolProperty(name="Show .obj Export", default=True)
     save_pie_show_fbx_export: BoolProperty(name="Show .fbx Export", default=True)
     save_pie_show_usd_export: BoolProperty(name="Show .usd Export", default=True)
 
     fbx_export_apply_scale_all: BoolProperty(name="Use 'Fbx All' for Applying Scale", description="This is useful for Unity, but bad for Unreal Engine", default=False)
+
+    show_screencast: BoolProperty(name="Show Screencast in Save Pie", description="Show Screencast in Save Pie", default=True)
+    screencast_operator_count: IntProperty(name="Operator Count", description="Maximum number of Operators displayed when Screen Casting", default=12, min=1, max=100)
+    screencast_fontsize: IntProperty(name="Font Size", default=12, min=2)
+    screencast_highlight_machin3: BoolProperty(name="Highlight MACHIN3 operators", description="Highlight Operators from MACHIN3 addons", default=True)
+    screencast_show_addon: BoolProperty(name="Display Operator's Addons", description="Display Operator's Addon", default=True)
+    screencast_show_idname: BoolProperty(name="Display Operator's idnames", description="Display Operator's bl_idname properties", default=False)
+
+
+    # Shading Pie
 
     switchmatcap1: StringProperty(name="Matcap 1", update=update_switchmatcap1)
     switchmatcap2: StringProperty(name="Matcap 2", update=update_switchmatcap2)
@@ -243,79 +235,45 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
     matcap2_switch_background_type: EnumProperty(name="Matcap 2 Background Type", items=matcap_background_type_items, default="THEME")
     matcap2_switch_background_viewport_color: FloatVectorProperty(name="Matcap 2 Background Color", subtype='COLOR', default=[0.05, 0.05, 0.05], size=3, min=0, max=1)
 
+
+    # Views Pie
+
     obj_mode_rotate_around_active: BoolProperty(name="Rotate Around Selection, but only in Object Mode", default=False)
     custom_views_use_trackball: BoolProperty(name="Force Trackball Navigation when using Custom Views", default=True)
     custom_views_set_transform_preset: BoolProperty(name="Set Transform Preset when using Custom Views", default=False)
     show_orbit_selection: BoolProperty(name="Show Orbit around Active", default=True)
     show_orbit_method: BoolProperty(name="Show Orbit Method Selection", default=True)
 
+
+    # Cursor Pie
+
     cursor_show_to_grid: BoolProperty(name="Show Cursor and Selected to Grid", default=False)
     cursor_set_transform_preset: BoolProperty(name="Set Transform Preset when Setting Cursor", default=False)
 
+
+    # Snapping Pie
+
     snap_show_absolute_grid: BoolProperty(name="Show Absolute Grid Snapping", default=False)
     snap_show_volume: BoolProperty(name="Show Volume Snapping", default=False)
+
+
+    # Modes Pie
 
     toggle_cavity: BoolProperty(name="Toggle Cavity/Curvature OFF in Edit Mode, ON in Object Mode", default=True)
     toggle_xray: BoolProperty(name="Toggle X-Ray ON in Edit Mode, OFF in Object Mode, if Pass Through or Wireframe was enabled in Edit Mode", default=True)
     sync_tools: BoolProperty(name="Sync Tool if possible, when switching Modes", default=True)
 
-    focus_view_transition: BoolProperty(name="Viewport Tweening", default=True)
-    focus_lights: BoolProperty(name="Ignore Lights (keep them always visible)", default=False)
+
+    # Tools Pie
 
     tools_show_boxcutter_presets: BoolProperty(name="Show BoxCutter Presets", default=True)
     tools_show_hardops_menu: BoolProperty(name="Show Hard Ops Menu", default=True)
     tools_show_quick_favorites: BoolProperty(name="Show Quick Favorites", default=False)
     tools_show_tool_bar: BoolProperty(name="Show Tool Bar", default=False)
 
-    matpick_workspace_names: StringProperty(name="Workspaces the Material Picker should appear on", default="Shading, Material")
-    matpick_spacing_obj: FloatProperty(name="Object Mode Spacing", min=0, default=20)
-    matpick_spacing_edit: FloatProperty(name="Edit Mode Spacing", min=0, default=5)
 
-    preferred_default_catalog: StringProperty(name="Preferred Default Catalog", default="Model")
-    preferred_assetbrowser_workspace_name: StringProperty(name="Preferred Workspace for Assembly Asset Creation", default="General.alt")
-    show_assembly_asset_creation_in_save_pie: BoolProperty(name="Show Assembly Asset Creation in Save Pie", default=True)
-    show_instance_collection_assembly_in_modes_pie: BoolProperty(name="Show Collection Instance Assembly in Modes Pie", default=True)
-    hide_wire_objects_when_creating_assembly_asset: BoolProperty(name="Hide Wire Objects when creating Assembly Asset", default=True)
-    hide_wire_objects_when_assembling_instance_collection: BoolProperty(name="Hide Wire Objects when assembling Collection Instance", default=True)
+    # Workspace Pie
 
-    show_screencast: BoolProperty(name="Show Screencast in Save Pie", description="Show Screencast in Save Pie", default=True)
-    screencast_operator_count: IntProperty(name="Operator Count", description="Maximum number of Operators displayed when Screen Casting", default=12, min=1, max=100)
-    screencast_fontsize: IntProperty(name="Font Size", default=12, min=2)
-    screencast_highlight_machin3: BoolProperty(name="Highlight MACHIN3 operators", description="Highlight Operators from MACHIN3 addons", default=True)
-    screencast_show_addon: BoolProperty(name="Display Operator's Addons", description="Display Operator's Addon", default=True)
-    screencast_show_idname: BoolProperty(name="Display Operator's idnames", description="Display Operator's bl_idname properties", default=False)
-
-    custom_startup: BoolProperty(name="Startup Scene", default=False)
-    custom_theme: BoolProperty(name="Theme", default=True)
-    custom_matcaps: BoolProperty(name="Matcaps", default=True)
-    custom_shading: BoolProperty(name="Shading", default=False)
-    custom_overlays: BoolProperty(name="Overlays", default=False)
-    custom_outliner: BoolProperty(name="Outliner", default=False)
-    custom_preferences_interface: BoolProperty(name="Preferences: Interface", default=False)
-    custom_preferences_viewport: BoolProperty(name="Preferences: Viewport", default=False)
-    custom_preferences_navigation: BoolProperty(name="Preferences: Navigation", default=False)
-    custom_preferences_keymap: BoolProperty(name="Preferences: Keymap", default=False, update=update_custom_preferences_keymap)
-    custom_preferences_system: BoolProperty(name="Preferences: System", default=False)
-    custom_preferences_save: BoolProperty(name="Preferences: Save & Load", default=False)
-
-    group_auto_name: BoolProperty(name="Auto Name Groups", description="Automatically add a Prefix and/or Suffix to any user-set Group Name", default=True)
-    group_basename: StringProperty(name="Group Basename", default="GROUP")
-    group_prefix: StringProperty(name="Prefix to add to Group Names", default="_")
-    group_suffix: StringProperty(name="Suffix to add to Group Names", default="_grp")
-    group_size: FloatProperty(name="Group Empty Draw Size", description="Default Group Size", default=0.2)
-    group_fade_sizes: BoolProperty(name="Fade Group Empty Sizes", description="Make Sub Group's Emtpies smaller than their Parents", default=True)
-    group_fade_factor: FloatProperty(name="Fade Group Size Factor", description="Factor by which to decrease each Group Empty's Size", default=0.8, min=0.1, max=0.9)
-
-    render_folder_name: StringProperty(name="Render Folder Name", description="Folder used to stored rended images relative to the Location of the .blend file", default='out')
-    render_seed_count: IntProperty(name="Seed Render Count", description="Set the Amount of Seed Renderings used to remove Fireflies", default=3, min=2, max=9)
-    render_keep_seed_renderings: BoolProperty(name="Keep Individual Renderings", description="Keep the individual Seed Renderings, after they've been combined into a single Image", default=False)
-    render_use_clownmatte_naming: BoolProperty(name="Use Clownmatte Name", description="""It's a better name than "Cryptomatte", believe me""", default=True)
-    render_show_buttons_in_light_properties: BoolProperty(name="Show Render Buttons in Light Properties Panel", description="Show Render Buttons in Light Properties Panel", default=True)
-    render_sync_light_visibility: BoolProperty(name="Sync Light visibility/renderability", description="Sync Light hide_render props based on hide_viewport props", default=True)
-    render_adjust_lights_on_render: BoolProperty(name="Ajust Area Lights when Rendering in Cycles", description="Adjust Area Lights when Rendering, to better match Eevee and Cycles", default=True)
-
-
-    # workspace pie customization
     pie_workspace_left_name: StringProperty(name="Left Workspace Name", default="Layout")
     pie_workspace_left_text: StringProperty(name="Left Workspace Custom Label", default="MACHIN3")
     pie_workspace_left_icon: StringProperty(name="Left Workspace Icon", default="VIEW3D")
@@ -349,7 +307,68 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
     pie_workspace_bottom_left_icon: StringProperty(name="Bottom-Left Workspace Icon", default="")
 
 
-    # MACHIN3tools
+    # Focus tool
+
+    focus_view_transition: BoolProperty(name="Viewport Tweening", default=True)
+    focus_lights: BoolProperty(name="Ignore Lights (keep them always visible)", default=False)
+
+
+    # Material Picker tool
+
+    matpick_workspace_names: StringProperty(name="Workspaces the Material Picker should appear on", default="Shading, Material")
+    matpick_spacing_obj: FloatProperty(name="Object Mode Spacing", min=0, default=20)
+    matpick_spacing_edit: FloatProperty(name="Edit Mode Spacing", min=0, default=5)
+
+
+    # Asset Browser tool
+
+    preferred_default_catalog: StringProperty(name="Preferred Default Catalog", default="Model")
+    preferred_assetbrowser_workspace_name: StringProperty(name="Preferred Workspace for Assembly Asset Creation", default="General.alt")
+    show_assembly_asset_creation_in_save_pie: BoolProperty(name="Show Assembly Asset Creation in Save Pie", default=True)
+    show_instance_collection_assembly_in_modes_pie: BoolProperty(name="Show Collection Instance Assembly in Modes Pie", default=True)
+    hide_wire_objects_when_creating_assembly_asset: BoolProperty(name="Hide Wire Objects when creating Assembly Asset", default=True)
+    hide_wire_objects_when_assembling_instance_collection: BoolProperty(name="Hide Wire Objects when assembling Collection Instance", default=True)
+
+
+    # Customize tool
+
+    custom_startup: BoolProperty(name="Startup Scene", default=False)
+    custom_theme: BoolProperty(name="Theme", default=True)
+    custom_matcaps: BoolProperty(name="Matcaps", default=True)
+    custom_shading: BoolProperty(name="Shading", default=False)
+    custom_overlays: BoolProperty(name="Overlays", default=False)
+    custom_outliner: BoolProperty(name="Outliner", default=False)
+    custom_preferences_interface: BoolProperty(name="Preferences: Interface", default=False)
+    custom_preferences_viewport: BoolProperty(name="Preferences: Viewport", default=False)
+    custom_preferences_navigation: BoolProperty(name="Preferences: Navigation", default=False)
+    custom_preferences_keymap: BoolProperty(name="Preferences: Keymap", default=False, update=update_custom_preferences_keymap)
+    custom_preferences_system: BoolProperty(name="Preferences: System", default=False)
+    custom_preferences_save: BoolProperty(name="Preferences: Save & Load", default=False)
+
+
+    # Group tool
+
+    group_auto_name: BoolProperty(name="Auto Name Groups", description="Automatically add a Prefix and/or Suffix to any user-set Group Name", default=True)
+    group_basename: StringProperty(name="Group Basename", default="GROUP")
+    group_prefix: StringProperty(name="Prefix to add to Group Names", default="_")
+    group_suffix: StringProperty(name="Suffix to add to Group Names", default="_grp")
+    group_size: FloatProperty(name="Group Empty Draw Size", description="Default Group Size", default=0.2)
+    group_fade_sizes: BoolProperty(name="Fade Group Empty Sizes", description="Make Sub Group's Emtpies smaller than their Parents", default=True)
+    group_fade_factor: FloatProperty(name="Fade Group Size Factor", description="Factor by which to decrease each Group Empty's Size", default=0.8, min=0.1, max=0.9)
+
+
+    # Render tool
+
+    render_folder_name: StringProperty(name="Render Folder Name", description="Folder used to stored rended images relative to the Location of the .blend file", default='out')
+    render_seed_count: IntProperty(name="Seed Render Count", description="Set the Amount of Seed Renderings used to remove Fireflies", default=3, min=2, max=9)
+    render_keep_seed_renderings: BoolProperty(name="Keep Individual Renderings", description="Keep the individual Seed Renderings, after they've been combined into a single Image", default=False)
+    render_use_clownmatte_naming: BoolProperty(name="Use Clownmatte Name", description="""It's a better name than "Cryptomatte", believe me""", default=True)
+    render_show_buttons_in_light_properties: BoolProperty(name="Show Render Buttons in Light Properties Panel", description="Show Render Buttons in Light Properties Panel", default=True)
+    render_sync_light_visibility: BoolProperty(name="Sync Light visibility/renderability", description="Sync Light hide_render props based on hide_viewport props", default=True)
+    render_adjust_lights_on_render: BoolProperty(name="Ajust Area Lights when Rendering in Cycles", description="Adjust Area Lights when Rendering, to better match Eevee and Cycles", default=True)
+
+
+    # MACHIN3tools Activation
 
     activate_smart_vert: BoolProperty(name="Smart Vert", default=False, update=update_activate_smart_vert)
     activate_smart_edge: BoolProperty(name="Smart Edge", default=False, update=update_activate_smart_edge)
@@ -376,7 +395,7 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
     activate_customize: BoolProperty(name="Customize", default=False, update=update_activate_customize)
 
 
-    # MACHIN3pies
+    # MACHIN3pies Activation
 
     activate_modes_pie: BoolProperty(name="Modes Pie", default=True, update=update_activate_modes_pie)
     activate_save_pie: BoolProperty(name="Save Pie", default=False, update=update_activate_save_pie)

@@ -140,6 +140,12 @@ create_assembly_asset_empty_location_items = [('AVG', 'Average', ''),
 create_assembly_asset_empty_collection_items = [('SCENECOL', 'Add to Scene Collection', ''),
                                                 ('OBJCOLS', 'Add to Object Collections', '')]
 
+
+shade_mode_items = [('SMOOTH', 'Smooth', ''),
+                    ('FLAT', 'Flat', '')]
+
+
+
 # PIES
 
 eevee_preset_items = [('NONE', 'None', ''),

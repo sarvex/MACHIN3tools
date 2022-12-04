@@ -1115,8 +1115,8 @@ class PieShading(Menu):
             column.separator()
             row = column.split(factor=0.55, align=True)
             r = row.row(align=True)
-            r.operator("machin3.shade_smooth", text="Smooth", icon_value=get_icon('smooth'))
-            r.operator("machin3.shade_flat", text="Flat", icon_value=get_icon('flat'))
+            r.operator("machin3.shade", text="Smooth", icon_value=get_icon('smooth')).mode = 'SMOOTH'
+            r.operator("machin3.shade", text="Flat", icon_value=get_icon('flat')).mode = 'FLAT'
 
             icon = "CHECKBOX_HLT" if mesh.use_auto_smooth else "CHECKBOX_DEHLT"
             row.operator("machin3.toggle_auto_smooth", text="AutoSmooth", icon=icon).angle = 0

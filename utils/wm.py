@@ -179,6 +179,35 @@ def get_last_operators(context, debug=False):
                 else:
                     prop = f'Local {axis}'
 
+        elif idname == 'machin3.shade':
+            mode = getattr(op, 'mode')
+
+            label = f"Shade {mode.title()}"
+
+            incl_children = getattr(op, 'include_children')
+            incl_boolean = getattr(op, 'include_boolean_objs')
+
+            if mode == 'SMOOTH':
+                sharpen = getattr(op, 'sharpen')
+
+                if sharpen:
+                    prop += '+Sharpen'
+
+            elif mode == 'FLAT':
+                clear = getattr(op, 'clear')
+
+                if clear:
+                    prop += '+Clear'
+
+            if incl_children:
+                prop += ' +incl Children'
+
+            if incl_boolean:
+                prop += ' +incl. Boolean'
+
+            # remove unncessary space at the very beginning
+            prop = prop.strip()
+
 
         # DECALmachine
 

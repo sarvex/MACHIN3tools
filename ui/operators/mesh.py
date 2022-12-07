@@ -2,7 +2,12 @@ import bpy
 from bpy.props import IntProperty, BoolProperty, EnumProperty
 import bmesh
 from math import radians
+from ... utils.registration import get_addon
+from ... utils.system import printd
 from ... items import shade_mode_items
+
+
+hypercursor = None
 
 
 class Shade(bpy.types.Operator):
@@ -14,6 +19,8 @@ class Shade(bpy.types.Operator):
     mode: EnumProperty(name="Shade Mode", items=shade_mode_items, default='SMOOTH')
 
     sharpen: BoolProperty(name="Set Sharps", default=False)
+    avoid_sharpen_edge_bevels: BoolProperty(name="Avoid Sharpening HyperCursor's EdgeBevels", description="Avoid Sharpening Edges used for HyperCursor's EdgeBevels", default=True)
+
     clear: BoolProperty(name="Clear Sharps, BWeights, Creases and Seams", default=False)
 
     include_children: BoolProperty(name="Include Children", default=False)
@@ -33,11 +40,18 @@ class Shade(bpy.types.Operator):
         return desc
 
     def draw(self, context):
+        global hypercursor
+
         layout = self.layout
         column = layout.column(align=True)
 
         if self.mode == 'SMOOTH':
-            column.prop(self, 'sharpen', toggle=True)
+            row = column.row(align=True)
+            row.prop(self, 'sharpen', toggle=True)
+
+            if hypercursor:
+                row.prop(self, 'avoid_sharpen_edge_bevels', text="Avoid Edge Bevels", toggle=True)
+
         elif self.mode == 'FLAT':
             column.prop(self, 'clear', toggle=True)
 
@@ -57,6 +71,12 @@ class Shade(bpy.types.Operator):
         return self.execute(context)
 
     def execute(self, context):
+        global hypercursor
+
+        if hypercursor is None:
+            hypercursor = get_addon('HyperCursor')[0]
+
+
         if context.mode == "OBJECT":
             selected = [obj for obj in context.selected_objects]
 
@@ -96,10 +116,10 @@ class Shade(bpy.types.Operator):
             # set sharps based on face angles + activate auto smooth + enable sharp overlays
             if self.mode == 'SMOOTH' and self.sharpen:
                 for obj in selected:
-                    self.set_sharps(context.mode, obj)
+                    self.set_sharps(context.mode, obj, hypercursor)
 
                 for obj, _ in more_objects:
-                    self.set_sharps(context.mode, obj)
+                    self.set_sharps(context.mode, obj, hypercursor)
 
                 context.space_data.overlay.show_edge_sharp = True
 
@@ -113,7 +133,7 @@ class Shade(bpy.types.Operator):
         elif context.mode == "EDIT_MESH":
             if self.mode == 'SMOOTH':
                 if self.set_sharps:
-                    self.set_sharps(context.mode, context.active_object)
+                    self.set_sharps(context.mode, context.active_object, hypercursor)
 
                     context.space_data.overlay.show_edge_sharp = True
                 else:
@@ -127,16 +147,18 @@ class Shade(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def set_sharps(self, mode, obj):
+    def set_sharps(self, mode, obj, hypercursor):
         obj.data.use_auto_smooth = True
         angle = obj.data.auto_smooth_angle
 
         if mode == 'OBJECT':
             bm = bmesh.new()
             bm.from_mesh(obj.data)
+            vglayer = bm.verts.layers.deform.verify()
 
         elif mode == 'EDIT_MESH':
             bm = bmesh.from_edit_mesh(obj.data)
+            vglayer = bm.verts.layers.deform.verify()
 
             # smooth all faces like in object mode
             for f in bm.faces:
@@ -144,17 +166,62 @@ class Shade(bpy.types.Operator):
 
         bm.normal_update()
 
-        sharpen = [e for e in bm.edges if len(e.link_faces) == 2 and e.calc_face_angle() > angle]
+        if hypercursor and self.avoid_sharpen_edge_bevels:
+            edge_bevelled_edges = self.get_edge_bevelled_edges(obj, bm, vglayer)
+        else:
+            edge_bevelled_edges = []
+
+        # get the edges to be sharpened
+        sharpen = [e for e in bm.edges if e.index not in edge_bevelled_edges and len(e.link_faces) == 2 and e.calc_face_angle() > angle]
 
         for e in sharpen:
             e.smooth = False
 
         if mode == 'OBJECT':
             bm.to_mesh(obj.data)
-            bm.clear()
+            bm.free()
 
         elif mode == 'EDIT_MESH':
             bmesh.update_edit_mesh(obj.data)
+
+    def get_edge_bevelled_edges(self, obj, bm, vglayer, debug=False):
+        '''
+        find the edges used in HyperCursor's EdgeBevel vertex groups
+        '''
+        
+        # get all EdgeBevel vgroups as a dict of dicts {index: {'name': 'Name', 'verts': [], 'edges': []}}
+        vgroups = {vg.index: {'name': vg.name,
+                              'verts': [],
+                              'edges': []} for vg in obj.vertex_groups if 'EdgeBevel' in vg.name}
+
+        verts = [v for v in bm.verts]
+
+        # find out what verts are in what group
+        for v in verts:
+            # print(v.index, v[self.vertex_group_layer].items())
+
+            for vgindex, weight in v[vglayer].items():
+                if vgindex in vgroups and weight == 1:
+                    vgroups[vgindex]['verts'].append(v.index)
+
+        # create list of all the edges that are used for edge bevels
+        edge_bevelled_edges = []
+
+        for e in bm.edges:
+            # print(e.index, [v.index for v in e.verts])
+
+            for vgindex, vgdata in vgroups.items():
+                if all(v.index in vgdata['verts'] for v in e.verts):
+                    edge_bevelled_edges.append(e.index)
+
+                    # and just for debug purposes, update the dict as well
+                    vgdata['edges'].append(e.index)
+
+        if debug:
+            print()
+            printd(vgroups, 'vgroups')
+
+        return edge_bevelled_edges
 
     def clear_obj_sharps(self, obj):
         obj.data.use_auto_smooth = False

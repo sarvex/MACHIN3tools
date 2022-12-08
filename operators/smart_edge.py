@@ -332,17 +332,13 @@ class SmartEdge(bpy.types.Operator):
         sharpen or unsharpen selected edges
         '''
 
-        # existing sharp edges among selection: unsharpen
-        if any([not e.smooth for e in edges]):
-            smooth = True
-
-        # no sharp edges found: sharpen
-        else:
-            smooth = False
+        # get the state in a way that allows sharpening smooth edges among the selection, while other selected edges are sharp already
+        # this avoids the notorious double sharpening when being lazy with the selection
+        state = any(e.smooth for e in edges)
 
         # (un)sharpen
         for e in edges:
-            e.smooth = smooth
+            e.smooth = not state
 
         bmesh.update_edit_mesh(active.data)
 

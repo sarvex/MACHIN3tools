@@ -49,7 +49,7 @@ class Shade(bpy.types.Operator):
             row = column.row(align=True)
             row.prop(self, 'sharpen', toggle=True)
 
-            if hypercursor:
+            if self.sharpen and hypercursor:
                 row.prop(self, 'avoid_sharpen_edge_bevels', text="Avoid Edge Bevels", toggle=True)
 
         elif self.mode == 'FLAT':

@@ -19,7 +19,7 @@ class Shade(bpy.types.Operator):
     mode: EnumProperty(name="Shade Mode", items=shade_mode_items, default='SMOOTH')
 
     sharpen: BoolProperty(name="Set Sharps", default=False)
-    avoid_sharpen_edge_bevels: BoolProperty(name="Avoid Sharpening HyperCursor's EdgeBevels", description="Avoid Sharpening Edges used for HyperCursor's EdgeBevels", default=True)
+    avoid_sharpen_edge_bevels: BoolProperty(name="Avoid Sharpening HyperCursor's Edge Bevels", description="Avoid Sharpening Edges used for HyperCursor's Edge Bevels", default=True)
 
     clear: BoolProperty(name="Clear Sharps, BWeights, Creases and Seams", default=False)
 
@@ -186,13 +186,13 @@ class Shade(bpy.types.Operator):
 
     def get_edge_bevelled_edges(self, obj, bm, vglayer, debug=False):
         '''
-        find the edges used in HyperCursor's EdgeBevel vertex groups
+        find the edges used in HyperCursor's Edge Bevel vertex groups
         '''
         
-        # get all EdgeBevel vgroups as a dict of dicts {index: {'name': 'Name', 'verts': [], 'edges': []}}
+        # get all Edge Bevel vgroups as a dict of dicts {index: {'name': 'Name', 'verts': [], 'edges': []}}
         vgroups = {vg.index: {'name': vg.name,
                               'verts': [],
-                              'edges': []} for vg in obj.vertex_groups if 'EdgeBevel' in vg.name}
+                              'edges': []} for vg in obj.vertex_groups if 'Edge Bevel' in vg.name}
 
         verts = [v for v in bm.verts]
 

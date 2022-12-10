@@ -351,6 +351,15 @@ class M3SceneProperties(bpy.types.PropertyGroup):
             if get_prefs().activate_transform_pie and get_prefs().custom_views_set_transform_preset:
                 bpy.ops.machin3.set_transform_preset(pivot='CURSOR' if self.custom_views_cursor else 'MEDIAN_POINT', orientation='CURSOR' if self.custom_views_cursor else 'GLOBAL')
 
+    def update_enforce_hide_render(self, context):
+        from . ui.operators import shading
+
+        for _, name in shading.render_visibility:
+            obj = bpy.data.objects.get(name)
+
+            if obj:
+                obj.hide_set(obj.visible_get())
+                
 
     # SHADING
 
@@ -375,6 +384,8 @@ class M3SceneProperties(bpy.types.PropertyGroup):
     adjust_lights_on_render_divider: FloatProperty(name="Divider used to calculate Cycles Light Strength from Eeeve Light Strength", default=4, min=1)
     adjust_lights_on_render_last: StringProperty(name="Last Light Adjustment", default='NONE')
     is_light_decreased_by_handler: BoolProperty(name="Have Lights been decreased by the init render handler?", default=False)
+
+    enforce_hide_render: BoolProperty(name="Enforce hide_render setting when Viewport Rendering", default=True, update=update_enforce_hide_render)
 
 
     # VIEW

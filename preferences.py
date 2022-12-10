@@ -260,6 +260,7 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
     render_show_buttons_in_light_properties: BoolProperty(name="Show Render Buttons in Light Properties Panel", description="Show Render Buttons in Light Properties Panel", default=True)
     render_sync_light_visibility: BoolProperty(name="Sync Light visibility/renderability", description="Sync Light hide_render props based on hide_viewport props", default=True)
     render_adjust_lights_on_render: BoolProperty(name="Ajust Area Lights when Rendering in Cycles", description="Adjust Area Lights when Rendering, to better match Eevee and Cycles", default=True)
+    render_enforce_hide_render: BoolProperty(name="Enforce hide_render setting when Viewport Rendering", description="Adjust Area Lights when Rendering, to better match Eevee and Cycles", default=True)
 
 
     # Material Picker tool

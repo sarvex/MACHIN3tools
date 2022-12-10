@@ -1369,7 +1369,11 @@ class PieShading(Menu):
                                             row.prop(color, "default_value", text="")
 
             if view.shading.type == 'RENDERED':
-                column.prop(context.scene.render, 'film_transparent')
+                row = column.split(factor=0.5, align=True)
+                row.prop(context.scene.render, 'film_transparent')
+
+                if get_prefs().render_enforce_hide_render:
+                    row.prop(context.scene.M3, 'enforce_hide_render', text="Enforce hide_render")
 
     def draw_eevee_box(self, context, view, layout):
         column = layout.column(align=True)

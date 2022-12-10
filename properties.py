@@ -385,7 +385,7 @@ class M3SceneProperties(bpy.types.PropertyGroup):
     adjust_lights_on_render_last: StringProperty(name="Last Light Adjustment", default='NONE')
     is_light_decreased_by_handler: BoolProperty(name="Have Lights been decreased by the init render handler?", default=False)
 
-    enforce_hide_render: BoolProperty(name="Enforce hide_render setting when Viewport Rendering", default=True, update=update_enforce_hide_render)
+    enforce_hide_render: BoolProperty(name="Enforce hide_render setting when Viewport Rendering", description="Enfore hide_render setting for objects when Viewport Rendering", default=True, update=update_enforce_hide_render)
 
 
     # VIEW

@@ -871,11 +871,18 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
                 r.prop(self, "render_sync_light_visibility", text="True" if self.render_sync_light_visibility else "False", toggle=True)
                 r.label(text="Sync Light visibility/renderability")
 
+                column.separator()
+
                 if self.activate_shading_pie:
                     row = column.row(align=True)
                     r = row.split(factor=0.2, align=True)
                     r.prop(self, "render_adjust_lights_on_render", text="True" if self.render_adjust_lights_on_render else "False", toggle=True)
-                    r.label(text="Adjust Area Lights when Rendering in Cycles, controlled from the Shading Pie")
+                    r.label(text="Adjust Area Lights when Rendering in Cycles, controlled from the Shading Pie")#
+
+                    row = column.row(align=True)
+                    r = row.split(factor=0.2, align=True)
+                    r.prop(self, "render_enforce_hide_render", text="True" if self.render_enforce_hide_render else "False", toggle=True)
+                    r.label(text="Enforce hidde_render setting when Viewport Rendering, controlled from the Shading Pie")#
 
                 else:
                     row = column.row(align=True)

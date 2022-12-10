@@ -116,19 +116,23 @@ class Shade(bpy.types.Operator):
             # set sharps based on face angles + activate auto smooth + enable sharp overlays
             if self.mode == 'SMOOTH' and self.sharpen:
                 for obj in selected:
-                    self.set_sharps(context.mode, obj, hypercursor)
+                    if obj.type == 'MESH':
+                        self.set_sharps(context.mode, obj, hypercursor)
 
                 for obj, _ in more_objects:
-                    self.set_sharps(context.mode, obj, hypercursor)
+                    if obj.type == 'MESH':
+                        self.set_sharps(context.mode, obj, hypercursor)
 
                 context.space_data.overlay.show_edge_sharp = True
 
             elif self.mode == 'FLAT' and self.clear:
                 for obj in selected:
-                    self.clear_obj_sharps(obj)
+                    if obj.type == 'MESH':
+                        self.clear_obj_sharps(obj)
 
                 for obj, _ in more_objects:
-                    self.clear_obj_sharps(obj)
+                    if obj.type == 'MESH':
+                        self.clear_obj_sharps(obj)
 
         elif context.mode == "EDIT_MESH":
             if self.mode == 'SMOOTH':

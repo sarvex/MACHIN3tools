@@ -1437,7 +1437,7 @@ class Customize(bpy.types.Operator):
 
         kc = context.window_manager.keyconfigs.user
 
-        if bpy.app.version <= (3, 1, 0):
+        if bpy.app.version < (3, 2, 0):
             modify_keymaps31(kc)
             add_keymaps31(kc)
 
@@ -1713,7 +1713,6 @@ class Customize(bpy.types.Operator):
 
         print(" Set cycles.ao_bounces_render to 2")
         cycles.ao_bounces_render = 2
-
 
     def overlays(self, context):
         print("\n» Modifying Overlays")

@@ -53,10 +53,14 @@ class MeshCut(bpy.types.Operator):
         bm.normal_update()
         bm.verts.ensure_lookup_table()
 
-        i = bm.faces.layers.int.verify()
-        s = bm.edges.layers.string.verify()
+        select_layer = bm.faces.layers.int.get('Machin3FaceSelect')
 
-        cutter_faces = [f for f in bm.faces if f[i] > 0]
+        meshcut_layer = bm.edges.layers.int.get('Machin3EdgeMeshCut')
+
+        if not meshcut_layer:
+            meshcut_layer = bm.edges.layers.int.new('Machin3EdgeMeshCut')
+
+        cutter_faces = [f for f in bm.faces if f[select_layer] > 0]
         bmesh.ops.delete(bm, geom=cutter_faces, context='FACES')
 
         # mark seams
@@ -68,7 +72,7 @@ class MeshCut(bpy.types.Operator):
 
             for e in non_manifold:
                 e.seam = True
-                e[s] = 'MESHCUT'.encode()
+                e[meshcut_layer] = 1
 
                 verts.update(e.verts)
 
@@ -94,8 +98,8 @@ class MeshCut(bpy.types.Operator):
             # dissolve them
             bmesh.ops.dissolve_verts(bm, verts=straight_edged)
 
-        # remove face int layer, it's no longer needed
-        bm.faces.layers.int.remove(i)
+        # remove face selection layer, it's no longer needed
+        bm.faces.layers.int.remove(select_layer)
 
         bm.to_mesh(target.data)
         bm.clear()

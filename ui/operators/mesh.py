@@ -33,7 +33,7 @@ class Shade(bpy.types.Operator):
         if properties.mode == 'SMOOTH':
             desc += "\nALT: Mark edges sharp if face angle > auto smooth angle"
         elif properties.mode == 'FLAT':
-            desc += "\nALT: Clear sharp, beweights, creases and seams"
+            desc += "\nALT: Clear sharp, bweights, creases and seams"
 
         desc += "\nSHIFT: Include Children"
         desc += "\nCTRL: Include Boolean Objects"
@@ -76,22 +76,23 @@ class Shade(bpy.types.Operator):
         if hypercursor is None:
             hypercursor = get_addon('HyperCursor')[0]
 
-
         if context.mode == "OBJECT":
-            selected = [obj for obj in context.selected_objects]
+            selected = [(obj, True, obj.data.use_auto_smooth if obj.type == 'MESH' else False) for obj in context.selected_objects if obj.data]
 
-            children = [(ob, ob.visible_get()) for obj in selected for ob in obj.children_recursive if ob.name in context.view_layer.objects] if self.include_children else []
-            boolean_objs = [(mod.object, mod.object.visible_get()) for obj in selected for mod in obj.modifiers if mod.type == 'BOOLEAN' and mod.object and mod.object.name in context.view_layer.objects] if self.include_boolean_objs else []
+            children = [(ob, ob.visible_get(), ob.data.use_auto_smooth if ob.type == 'MESH' else False) for obj, _, _ in selected for ob in obj.children_recursive if obj.data and ob.name in context.view_layer.objects] if self.include_children else []
+            boolean_objs = [(mod.object, mod.object.visible_get(), mod.object.data.use_auto_smooth if mod.object.type == 'MESH' else False) for obj, _, _ in selected for mod in obj.modifiers if mod.type == 'BOOLEAN' and mod.object and mod.object.data and mod.object.name in context.view_layer.objects] if self.include_boolean_objs else []
             more_objects = set(children + boolean_objs)
 
             # print()
-            # print("selected:", [obj.name for obj in selected])
-            # print("children:", [obj.name for obj, _ in children])
-            # print("boolean objs:", [obj.name for obj, _ in boolean_objs])
-            # print("more objs:", [obj.name for obj, _ in more_objects])
+            # print("selected:", [obj.name for obj, _, _ in selected])
+            # print("children:", [obj.name for obj, _, _ in children])
+            # print("boolean objs:", [obj.name for obj, _, _ in boolean_objs])
+            # print("more objs:", [obj.name for obj, _, _ in more_objects])
+
+            # return {'FINISHED'}
 
             # ensure children/boolean objects are visible and selected
-            for obj, state in more_objects:
+            for obj, state, _ in more_objects:
                 if not state:
                     obj.hide_set(False)
                 obj.select_set(True)
@@ -100,37 +101,47 @@ class Shade(bpy.types.Operator):
             if self.mode == 'SMOOTH':
                 bpy.ops.object.shade_smooth()
 
+                # NOTE: the native smooth op will actually disable auto smooth if it is turned on, but we don't want that, we do this intentionally via ALT flat shading, if we want that
+                # ####: so restore auto smooth now
+                for obj, _, auto_smooth in selected:
+                    if auto_smooth:
+                        obj.data.use_auto_smooth = True
+
+                for obj, _, auto_smooth in more_objects:
+                    if auto_smooth:
+                        obj.data.use_auto_smooth = True
+
             elif self.mode == 'FLAT':
                 bpy.ops.object.shade_flat()
 
             # restore child/boolean object visibility states
-            for obj, state in more_objects:
+            for obj, state, _ in more_objects:
                 obj.hide_set(not state)
 
             # restore original selection
             bpy.ops.object.select_all(action='DESELECT')
             
-            for obj in selected:
+            for obj, _, _ in selected:
                 obj.select_set(True)
 
             # set sharps based on face angles + activate auto smooth + enable sharp overlays
             if self.mode == 'SMOOTH' and self.sharpen:
-                for obj in selected:
+                for obj, _, _ in selected:
                     if obj.type == 'MESH':
                         self.set_sharps(context.mode, obj, hypercursor)
 
-                for obj, _ in more_objects:
+                for obj, _, _ in more_objects:
                     if obj.type == 'MESH':
                         self.set_sharps(context.mode, obj, hypercursor)
 
                 context.space_data.overlay.show_edge_sharp = True
 
             elif self.mode == 'FLAT' and self.clear:
-                for obj in selected:
+                for obj, _, _ in selected:
                     if obj.type == 'MESH':
                         self.clear_obj_sharps(obj)
 
-                for obj, _ in more_objects:
+                for obj, _, _ in more_objects:
                     if obj.type == 'MESH':
                         self.clear_obj_sharps(obj)
 

@@ -1021,35 +1021,45 @@ class MACHIN3toolsPreferences(bpy.types.AddonPreferences):
 
             if self.save_pie_import_show:
                 column = bb.column(align=True)
+
+                # OBJ
+
                 row = column.row(align=True)
-                r = row.split(factor=0.2, align=True)
+                split = row.split(factor=0.5, align=True)
+
+                r = split.split(factor=0.42, align=True)
                 r.prop(self, "save_pie_show_obj_export", text="True" if self.save_pie_show_obj_export else "False", toggle=True)
                 r.label(text="Show .obj Import/Export")
 
+                split.separator()
+
+                # FBX
+
+                row = column.row(align=True)
+                split = row.split(factor=0.5, align=True)
+
+                r = split.split(factor=0.42, align=True)
+                r.prop(self, "save_pie_show_fbx_export", text="True" if self.save_pie_show_fbx_export else "False", toggle=True)
+                r.label(text="Show .fbx Import/Export")
+
                 if self.save_pie_show_fbx_export:
-                    row = column.row(align=True)
-
-                    split = row.split(factor=0.5, align=True)
-
-                    r = split.split(factor=0.415, align=True)
-                    r.prop(self, "save_pie_show_fbx_export", text="True" if self.save_pie_show_fbx_export else "False", toggle=True)
-                    r.label(text="Show .fbx Import/Export")
-
-                    r = split.split(factor=0.395, align=True)
+                    r = split.split(factor=0.42, align=True)
                     r.prop(self, "fbx_export_apply_scale_all", text="True" if self.fbx_export_apply_scale_all else "False", toggle=True)
                     r.label(text="Use 'Fbx All' for Applying Scale")
 
                 else:
-                    row = column.row(align=True)
-                    r = row.split(factor=0.2, align=True)
-                    r.prop(self, "save_pie_show_fbx_export", text="True" if self.save_pie_show_fbx_export else "False", toggle=True)
-                    r.label(text="Show .fbx Import/Export")
+                    split.separator()
 
+                # USD
 
                 row = column.row(align=True)
-                r = row.split(factor=0.2, align=True)
+                split = row.split(factor=0.5, align=True)
+
+                r = split.split(factor=0.42, align=True)
                 r.prop(self, "save_pie_show_usd_export", text="True" if self.save_pie_show_usd_export else "False", toggle=True)
                 r.label(text="Show .usd Import/Export")
+
+                split.separator()
 
 
             # Screen Cast

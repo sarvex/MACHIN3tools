@@ -19,6 +19,8 @@ def draw_axes_HUD(context, objects):
         screenspace = m3.draw_axes_screenspace
         ui_scale = context.preferences.view.ui_scale
 
+        show_cursor = context.space_data.overlay.show_cursor
+
         axes = [(Vector((1, 0, 0)), red), (Vector((0, 1, 0)), green), (Vector((0, 0, 1)), blue)]
 
         for axis, color in axes:
@@ -35,11 +37,16 @@ def draw_axes_HUD(context, objects):
 
                     factor = get_zoom_factor(context, origin, scale=300, ignore_obj_scale=True) if screenspace else 1
 
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.9)
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor)
+                    if show_cursor and screenspace:
+                        coords.append(origin + (mx.to_3x3() @ axis).normalized() * 0.1 * ui_scale * factor * 0.8)
+                        coords.append(origin + (mx.to_3x3() @ axis).normalized() * 0.1 * ui_scale * factor * 1.2)
 
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.1)
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.7)
+                    else:
+                        coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.9)
+                        coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor)
+
+                        coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.1)
+                        coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.7)
 
                 # OBJECT
 

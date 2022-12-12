@@ -14,9 +14,9 @@ def draw_axes_HUD(context, objects):
     if context.space_data.overlay.show_overlays:
         m3 = context.scene.M3
 
-        size = m3.object_axes_size
-        alpha = m3.object_axes_alpha
-        screenspace = m3.object_axes_screenspace
+        size = m3.draw_axes_size
+        alpha = m3.draw_axes_alpha
+        screenspace = m3.draw_axes_screenspace
 
         axes = [(Vector((1, 0, 0)), red), (Vector((0, 1, 0)), green), (Vector((0, 0, 1)), blue)]
 
@@ -25,13 +25,29 @@ def draw_axes_HUD(context, objects):
 
             # draw object(s)
             for obj in objects:
-                if str(obj) != '<bpy_struct, Object invalid>':
+
+                # CURSOR
+
+                if obj == 'CURSOR':
+                    mx = context.scene.cursor.matrix
+                    origin = mx.decompose()[0]
+
+                    factor = get_zoom_factor(context, origin, scale=300, ignore_obj_scale=True) if screenspace else 1
+
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor * 0.9)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor)
+
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor * 0.1)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor * 0.7)
+
+                # OBJECT
+
+                elif str(obj) != '<bpy_struct, Object invalid>':
                     mx = obj.matrix_world
                     origin = mx.decompose()[0]
 
                     factor = get_zoom_factor(context, origin, scale=300, ignore_obj_scale=True) if screenspace else 1
 
-                    # coords.append(origin)
                     coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor * 0.1)
                     coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor)
 

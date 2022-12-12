@@ -130,6 +130,9 @@ def axes_HUD(scene):
     if scene.M3.draw_active_axes and active and active not in axes_objects:
         axes_objects.append(active)
 
+    if scene.M3.draw_cursor_axes:
+        axes_objects.append('CURSOR')
+
     # print()
 
     if axes_objects:

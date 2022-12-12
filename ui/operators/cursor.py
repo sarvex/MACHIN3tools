@@ -23,8 +23,8 @@ class CursorToOrigin(bpy.types.Operator):
             popup_message("Hold down ATL, CTRL or neither, not both!", title="Invalid Modifier Keys")
             return {'CANCELLED'}
 
-        # ensure cursor is actuall shown
-        if not context.space_data.overlay.show_cursor:
+        # ensure cursor or its axes are actually shown
+        if not context.space_data.overlay.show_cursor and not context.scene.M3.draw_cursor_axes:
             context.space_data.overlay.show_cursor = True
 
         cmx = context.scene.cursor.matrix
@@ -63,8 +63,8 @@ class CursorToSelected(bpy.types.Operator):
 
     def invoke(self, context, event):
 
-        # ensure cursor is actuall shown
-        if not context.space_data.overlay.show_cursor:
+        # ensure cursor or its axes are actually shown
+        if not context.space_data.overlay.show_cursor and not context.scene.M3.draw_cursor_axes:
             context.space_data.overlay.show_cursor = True
 
         active = context.active_object

@@ -1016,17 +1016,24 @@ class PieShading(Menu):
         elif context.mode == "EDIT_MESH":
             r.active = view.shading.show_xray
             r.prop(view.shading, "xray_alpha", text="X-Ray")
-        # object axes
-        hasobjectaxes = m3.draw_active_axes or any([obj.M3.draw_axes for obj in context.visible_objects])
+
+        # object and cursor axes
+        hasaxes = m3.draw_cursor_axes or m3.draw_active_axes or any([obj.M3.draw_axes for obj in context.visible_objects])
 
         row = column.split(factor=0.4, align=True)
-        row.prop(m3, "draw_active_axes", text="Active's Axes", icon='EMPTY_AXIS')
+        rs = row.split(factor=0.5, align=True)
+        rs.prop(m3, "draw_active_axes", text="Active", icon='EMPTY_AXIS')
+        rs.prop(m3, "draw_cursor_axes", text="Cursor", icon='PIVOT_CURSOR')
 
         r = row.row(align=True)
-        r.active = hasobjectaxes
-        r.prop(m3, "object_axes_screenspace", text="", icon='WORKSPACE')
-        r.prop(m3, "object_axes_size", text="")
-        r.prop(m3, "object_axes_alpha", text="")
+        r.active = hasaxes
+        r.prop(m3, "draw_axes_screenspace", text="", icon='WORKSPACE')
+        r.prop(m3, "draw_axes_size", text="")
+        r.prop(m3, "draw_axes_alpha", text="")
+
+        # row = column.row()
+        # row.prop(m3, "draw_cursor_axes", text="Cursor's Axes", icon='EMPTY_AXIS')
+
 
     def draw_solid_box(self, context, view, layout):
         shading = context.space_data.shading

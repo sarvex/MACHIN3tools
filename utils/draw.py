@@ -15,8 +15,9 @@ def draw_axes_HUD(context, objects):
         m3 = context.scene.M3
 
         size = m3.draw_axes_size
-        alpha = m3.draw_axes_alpha
+        alpha = m3.draw_axes_alpha - 0.001
         screenspace = m3.draw_axes_screenspace
+        ui_scale = context.preferences.view.ui_scale
 
         axes = [(Vector((1, 0, 0)), red), (Vector((0, 1, 0)), green), (Vector((0, 0, 1)), blue)]
 
@@ -34,11 +35,11 @@ def draw_axes_HUD(context, objects):
 
                     factor = get_zoom_factor(context, origin, scale=300, ignore_obj_scale=True) if screenspace else 1
 
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor * 0.9)
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.9)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor)
 
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor * 0.1)
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor * 0.7)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.1)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.7)
 
                 # OBJECT
 
@@ -48,8 +49,8 @@ def draw_axes_HUD(context, objects):
 
                     factor = get_zoom_factor(context, origin, scale=300, ignore_obj_scale=True) if screenspace else 1
 
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor * 0.1)
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * factor)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.1)
+                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor)
 
                     """
                     # debuging stash + stashtargtmx for object origin changes

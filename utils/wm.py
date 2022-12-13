@@ -208,6 +208,10 @@ def get_last_operators(context, debug=False):
             # remove unncessary space at the very beginning
             prop = prop.strip()
 
+        elif idname == 'machin3.purge_orphans':
+            recursive = getattr(op, 'recursive')
+            label = 'Purge Orphans Recursively' if recursive else 'Purge Orphans'
+
 
         # DECALmachine
 

@@ -181,9 +181,10 @@ keys = {'SMART_VERT': [{'label': 'Merge Last', 'keymap': 'Mesh', 'idname': 'mach
                   {'label': 'Expand Outliner', 'keymap': 'Outliner', 'space_type': 'OUTLINER', 'idname': 'machin3.expand_outliner', 'type': 'TWO', 'value': 'PRESS'},
                   {'label': 'Collapse Outliner', 'keymap': 'Outliner', 'space_type': 'OUTLINER', 'idname': 'machin3.collapse_outliner', 'type': 'THREE', 'value': 'PRESS'},
                   {'label': 'Toggle Children', 'keymap': 'Outliner', 'space_type': 'OUTLINER', 'idname': 'machin3.toggle_outliner_children', 'type': 'FOUR', 'value': 'PRESS'}],
-        'SELECT': [{'keymap': 'Object Mode', 'idname': 'machin3.select_hierarchy', 'type': 'DOWN_ARROW', 'value': 'PRESS', 'properties': [('include_parent', False)]},
-                   {'keymap': 'Object Mode', 'idname': 'machin3.select_hierarchy', 'type': 'DOWN_ARROW', 'value': 'PRESS', 'shift': True, 'properties': [('include_parent', True)]}],
-
+        'SELECT': [{'label': 'Select Children', 'keymap': 'Object Mode', 'idname': 'machin3.select_hierarchy', 'type': 'DOWN_ARROW', 'value': 'PRESS', 'properties': [('include_parent', False), ('unhide', False)]},
+                   {'label': 'Select Parent + Children', 'keymap': 'Object Mode', 'idname': 'machin3.select_hierarchy', 'type': 'DOWN_ARROW', 'value': 'PRESS', 'shift': True, 'properties': [('include_parent', True), ('unhide', False)]},
+                   {'label': 'Select Children + Unhide', 'keymap': 'Object Mode', 'idname': 'machin3.select_hierarchy', 'type': 'DOWN_ARROW', 'value': 'PRESS', 'ctrl': True, 'properties': [('include_parent', False), ('unhide', True)]},
+                   {'label': 'Select Parent + Children + Unhide', 'keymap': 'Object Mode', 'idname': 'machin3.select_hierarchy', 'type': 'DOWN_ARROW', 'value': 'PRESS', 'shift': True, 'ctrl': True, 'properties': [('include_parent', True), ('unhide', True)]}],
         'SMOOTH': [{'keymap': '3D View Generic', 'space_type': 'VIEW_3D', 'idname': 'machin3.toggle_smooth', 'type': 'TAB', 'value': 'PRESS', 'alt': True, 'info': ['Remap this is if Alt + Tab switches Windows for you']}],
         'RENDER': [{'keymap': 'Node Editor', 'space_type': 'NODE_EDITOR', 'idname': 'machin3.duplicate_nodes', 'type': 'D', 'value': 'PRESS', 'shift': True}],
 

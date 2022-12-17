@@ -298,6 +298,19 @@ def get_last_operators(context, debug=False):
             label = 'Point Cursor'
             prop = 'Y' if align_y_axis else 'Z'
 
+        elif idname == 'machin3.hyper_cursor_object':
+            hide_all = getattr(op, 'hide_all_visible_wire_objs')
+            toggle_wire_children = getattr(op, 'toggle_wire_children')
+            sort_modifiers = getattr(op, 'sort_modifiers')
+
+            if hide_all:
+                label = "Hide All Visible Wire Objects"
+            elif toggle_wire_children:
+                label = "Toggle Wire Objects in Object Tree"
+            elif sort_modifiers:
+                label = "Sort Modifiers + Force Gizmo Update"
+
+
         operators.append((addon, label, idname, prop))
 
     # if there aren't any last ops, it's because you've just done an undo

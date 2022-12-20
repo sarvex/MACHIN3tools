@@ -443,7 +443,7 @@ class Mirror(bpy.types.Operator):
             self.removeall = False
 
             # get aligned and mislalignment mods
-            self.aligned, self.misaligned = self.get_misaligned_mods(context, self.active, self.mx, debug=True)
+            self.aligned, self.misaligned = self.get_misaligned_mods(context, self.active, self.mx, debug=False)
 
             if self.misaligned:
 

@@ -190,16 +190,24 @@ class SaveVersionedStartupFile(bpy.types.Operator):
         config_path = bpy.utils.user_resource('CONFIG')
         startup_path = os.path.join(config_path, 'startup.blend')
 
-        indices = [int(f.replace('startup.blend', '')) for f in os.listdir(bpy.utils.user_resource('CONFIG')) if 'startup.blend' in f and f != 'startup.blend']
-        biggest_idx = max(indices) if indices else 0
+        if os.path.exists(startup_path):
+            indices = [int(f.replace('startup.blend', '')) for f in os.listdir(bpy.utils.user_resource('CONFIG')) if 'startup.blend' in f and f != 'startup.blend']
+            biggest_idx = max(indices) if indices else 0
 
-        # create latest versioned startup file from current one
-        os.rename(startup_path, os.path.join(config_path, f'startup.blend{biggest_idx + 1}'))
+            # create latest versioned startup file from current one
+            os.rename(startup_path, os.path.join(config_path, f'startup.blend{biggest_idx + 1}'))
 
-        # create new startup file from curretn blend file state
-        bpy.ops.wm.save_homefile()
+            # save current file as startup file
+            bpy.ops.wm.save_homefile()
 
-        self.report({'INFO'}, 'Versioned Startup File saved')
+            self.report({'INFO'}, f'Versioned Startup File saved: {biggest_idx + 1}')
+
+        else:
+            # save current file as startup file
+            bpy.ops.wm.save_homefile()
+
+            self.report({'INFO'}, f'Initial Startup File saved')
+
         return {'FINISHED'}
 
 

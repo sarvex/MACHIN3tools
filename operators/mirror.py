@@ -18,7 +18,6 @@ from .. items import axis_items, axis_index_mapping
 
 
 decalmachine = None
-hypercursor = None
 
 
 def draw_mirror(op):
@@ -402,21 +401,16 @@ class Mirror(bpy.types.Operator):
         self.active.select_set(True)
 
     def invoke(self, context, event):
-        global decalmachine, hypercursor
+        global decalmachine 
 
         if decalmachine is None:
             decalmachine = get_addon("DECALmachine")[0]
 
-        if hypercursor is None:
-            hypercursor = get_addon("HyperCursor")[0]
-
         self.decalmachine = decalmachine
 
         scene = context.scene
-        hc = scene.HC if hypercursor else None
 
         active_tool = get_active_tool(context).idname
-        self.cursor = hypercursor and 'machin3.tool_hyper_cursor' in active_tool and hc and hc.show_gizmos
 
         self.active = context.active_object
         self.sel = context.selected_objects

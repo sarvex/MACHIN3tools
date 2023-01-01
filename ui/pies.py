@@ -1204,6 +1204,12 @@ class PieShading(Menu):
                 rr.active = view.overlay.show_curve_normals
                 rr.prop(view.overlay, "normals_length", text="Length")
 
+            column.separator()
+            row = column.split(factor=0.5, align=True)
+            row.operator("machin3.shade", text="Smooth", icon_value=get_icon('smooth')).mode = 'SMOOTH'
+            row.operator("machin3.shade", text="Flat", icon_value=get_icon('flat')).mode = 'FLAT'
+
+
     def draw_shade_box(self, context, view, layout):
         column = layout.column(align=True)
 

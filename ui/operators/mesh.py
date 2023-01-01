@@ -31,13 +31,20 @@ class Shade(bpy.types.Operator):
         desc = "Shade Smooth" if properties.mode == 'SMOOTH' else 'Smooth Flat'
 
         if properties.mode == 'SMOOTH':
-            desc += "\nALT: Mark edges sharp if face angle > auto smooth angle"
+            desc += "\nALT: Mark MESH object edges sharp if face angle > auto smooth angle"
         elif properties.mode == 'FLAT':
-            desc += "\nALT: Clear sharp, bweights, creases and seams"
+            desc += "\nALT: Clear MESH object sharps, bweights, creases and seams"
 
         desc += "\nSHIFT: Include Children"
         desc += "\nCTRL: Include Boolean Objects"
         return desc
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode == 'OBJECT':
+            return [obj for obj in context.selected_objects if obj.type in ['MESH', 'CURVE']]
+        elif context.mode == 'EDIT_MESH':
+            return context.active_object
 
     def draw(self, context):
         global hypercursor

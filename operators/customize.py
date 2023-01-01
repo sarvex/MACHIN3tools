@@ -1794,7 +1794,7 @@ class Customize(bpy.types.Operator):
         worldssourcepath = os.path.join(resourcespath, "worlds")
         worldstargetpath = makedir(os.path.join(datafilespath, "studiolights", "world"))
 
-        if os.path.exisrts(worldssourcepath):
+        if os.path.exists(worldssourcepath):
             worlds = os.listdir(worldssourcepath)
 
             for world in sorted(worlds):

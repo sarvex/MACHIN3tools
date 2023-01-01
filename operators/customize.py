@@ -1793,11 +1793,13 @@ class Customize(bpy.types.Operator):
 
         worldssourcepath = os.path.join(resourcespath, "worlds")
         worldstargetpath = makedir(os.path.join(datafilespath, "studiolights", "world"))
-        worlds = os.listdir(worldssourcepath)
 
-        for world in sorted(worlds):
-            shutil.copy(os.path.join(worldssourcepath, world), worldstargetpath)
-            print("  %s -> %s" % (world, worldstargetpath))
+        if os.path.exisrts(worldssourcepath):
+            worlds = os.listdir(worldssourcepath)
+
+            for world in sorted(worlds):
+                shutil.copy(os.path.join(worldssourcepath, world), worldstargetpath)
+                print("  %s -> %s" % (world, worldstargetpath))
 
     def bookmarks(self, context):
         print("\n» Setting Custom Bookmarks")

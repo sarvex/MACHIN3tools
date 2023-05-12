@@ -49,12 +49,14 @@ class PieModes(Menu):
             if context.mode in ['OBJECT', 'EDIT_MESH', 'EDIT_ARMATURE', 'POSE', 'EDIT_CURVE', 'EDIT_TEXT', 'EDIT_SURFACE', 'EDIT_METABALL', 'EDIT_LATTICE', 'EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'SCULPT_CURVES']:
                 if active.type == 'MESH':
                     if context.area.type == "VIEW_3D":
-
                         if active.library:
                             blendpath = abspath(active.library.filepath)
                             library = active.library.name
 
-                            op = pie.operator("machin3.open_library_blend", text="Open %s" % (os.path.basename(blendpath)))
+                            op = pie.operator(
+                                "machin3.open_library_blend",
+                                text=f"Open {os.path.basename(blendpath)}",
+                            )
                             op.blendpath = blendpath
                             op.library = library
 
@@ -276,14 +278,17 @@ class PieModes(Menu):
                         # to allow turning selection off directly.
                         domain = active.data.selection_domain
 
-                        if domain == 'POINT':
+                        if domain == 'CURVE':
+                            row.operator("curves.set_selection_domain", text="", icon='CURVE_BEZCIRCLE').domain = 'POINT'
+
+                            row.prop(active.data, "use_sculpt_selection", text="", icon='CURVE_PATH')
+                        elif domain == 'POINT':
                             row.prop(active.data, "use_sculpt_selection", text="", icon='CURVE_BEZCIRCLE')
+                            row.operator("curves.set_selection_domain", text="", icon='CURVE_PATH').domain = 'CURVE'
+
                         else:
                             row.operator("curves.set_selection_domain", text="", icon='CURVE_BEZCIRCLE').domain = 'POINT'
 
-                        if domain == 'CURVE':
-                            row.prop(active.data, "use_sculpt_selection", text="", icon='CURVE_PATH')
-                        else:
                             row.operator("curves.set_selection_domain", text="", icon='CURVE_PATH').domain = 'CURVE'
 
                     else:
@@ -587,7 +592,6 @@ class PieModes(Menu):
                     pie.separator()
 
 
-        # no active object
         else:
             # 4 - LEFT
             pie.separator()

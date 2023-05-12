@@ -125,9 +125,7 @@ class AlignEditMesh(bpy.types.Operator):
                 self.draw_each = True
 
             if eachable and self.align_each:
-                for verts, _ in sequences:
-                    all_verts.append(verts)
-
+                all_verts.extend(verts for verts, _ in sequences)
             else:
                 all_verts.append(verts)
 
@@ -139,8 +137,7 @@ class AlignEditMesh(bpy.types.Operator):
                 self.draw_each = True
 
             if eachable and self.align_each:
-                for verts, _, _ in islands:
-                    all_verts.append(verts)
+                all_verts.extend(verts for verts, _, _ in islands)
             else:
                 all_verts.append(verts)
 
@@ -226,8 +223,13 @@ class AlignEditMesh(bpy.types.Operator):
         '''
         return matrix based on space
         '''
-        mx = context.active_object.matrix_world if self.space == 'LOCAL' else context.scene.cursor.matrix if self.space == 'CURSOR' else Matrix()
-        return mx
+        return (
+            context.active_object.matrix_world
+            if self.space == 'LOCAL'
+            else context.scene.cursor.matrix
+            if self.space == 'CURSOR'
+            else Matrix()
+        )
 
 
 class CenterEditMesh(bpy.types.Operator):
@@ -472,12 +474,12 @@ class Straighten(bpy.types.Operator):
 
         # if in edge mode, check if there are connected vert sequences, that are non-cyclic and have at least 3 verts, then straighten each sequence
         if context.scene.tool_settings.mesh_select_mode[1]:
-            sequences = get_selected_vert_sequences(verts.copy(), ensure_seq_len=True, debug=False)
-
-            if sequences:
-                vert_lists = [seq for seq, cyclic in sequences if len(seq) > 2 and not cyclic]
-
-                if vert_lists:
+            if sequences := get_selected_vert_sequences(
+                verts.copy(), ensure_seq_len=True, debug=False
+            ):
+                if vert_lists := [
+                    seq for seq, cyclic in sequences if len(seq) > 2 and not cyclic
+                ]:
                     for verts in vert_lists:
                         v_start = verts[0]
                         v_end = verts[-1]
@@ -527,6 +529,8 @@ class Straighten(bpy.types.Operator):
         history = list(bm.select_history)
 
         # check if the selection history has at least 2 verts - and if so, determine the start and end vert from it
-        if len(history) >= 2 and all([isinstance(h, bmesh.types.BMVert) for h in history]):
+        if len(history) >= 2 and all(
+            isinstance(h, bmesh.types.BMVert) for h in history
+        ):
             return history[0], history[-1]
         return None, None

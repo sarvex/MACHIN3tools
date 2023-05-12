@@ -46,10 +46,7 @@ class SetSnappingPreset(bpy.types.Operator):
         if self.element == 'INCREMENT':
             ts.use_snap_grid_absolute = True
 
-        elif self.element == 'VOLUME':
-            pass
-
-        else:
+        elif self.element != 'VOLUME':
             ts.snap_target = self.target
             ts.use_snap_align_rotation = self.align_rotation
 

@@ -22,9 +22,7 @@ class ColorizeMaterials(bpy.types.Operator):
 
     def execute(self, context):
         for mat in bpy.data.materials:
-            node = get_last_node(mat)
-
-            if node:
+            if node := get_last_node(mat):
                 color = node.inputs.get("Base Color")
 
                 if not color:
@@ -52,12 +50,8 @@ class ColorizeObjectsFromMaterials(bpy.types.Operator):
         objects = [obj for obj in context.selected_objects if obj.type != 'EMPTY']
 
         for obj in objects:
-            mat = obj.active_material
-
-            if mat:
-                node = get_last_node(mat)
-
-                if node:
+            if mat := obj.active_material:
+                if node := get_last_node(mat):
                     color = node.inputs.get("Base Color")
 
                     if not color:
@@ -141,36 +135,42 @@ class ColorizeObjectsFromCollections(bpy.types.Operator):
         collectiondict = {}
 
         for obj in context.selected_objects:
-            cols = sorted([col for col in obj.users_collection], key=lambda c: len(c.objects), reverse=True if self.multiple == "MOST" else False)
+            cols = sorted(
+                list(obj.users_collection),
+                key=lambda c: len(c.objects),
+                reverse=self.multiple == "MOST",
+            )
             # print(obj.name, [col.name for col in cols], [col.DM.isdecaltypecol for col in cols])
 
-            if self.dm:
-                if obj.DM.isdecal:
-                    if self.decalmachine == "TYPE":
-                        cols = [col for col in cols if col.DM.isdecaltypecol]
+            if self.dm and obj.DM.isdecal:
+                if self.decalmachine == "PARENT":
+                    cols = [col for col in cols if col.DM.isdecalparentcol]
 
-                    if self.decalmachine == "PARENT":
-                        cols = [col for col in cols if col.DM.isdecalparentcol]
+                elif self.decalmachine == "TYPE":
+                    cols = [col for col in cols if col.DM.isdecaltypecol]
 
-                    if self.decalmachine == "IGNORE" and obj.parent:
-                        cols = sorted([col for col in obj.parent.users_collection], key=lambda c: len(c.objects), reverse=True if self.multiple == "MOST" else False)
-
-
-            if cols:
-                col = cols[0]
-            else:
-                col = context.scene.collection
+                if self.decalmachine == "IGNORE" and obj.parent:
+                    cols = sorted(
+                        list(obj.parent.users_collection),
+                        key=lambda c: len(c.objects),
+                        reverse=self.multiple == "MOST",
+                    )
 
 
+            col = cols[0] if cols else context.scene.collection
             if col in collectiondict:
                 collectiondict[col]["objects"].append(obj)
 
             else:
-                collectiondict[col] = {}
-                collectiondict[col]["objects"] = [obj]
-                collectiondict[col]["color"] = (random.random(), random.random(), random.random(), 1)
-
-
+                collectiondict[col] = {
+                    "objects": [obj],
+                    "color": (
+                        random.random(),
+                        random.random(),
+                        random.random(),
+                        1,
+                    ),
+                }
         for col in collectiondict:
             objects = collectiondict[col]["objects"]
             color = collectiondict[col]["color"]

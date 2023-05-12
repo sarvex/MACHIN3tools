@@ -149,7 +149,10 @@ class PanelMACHIN3tools(bpy.types.Panel):
         r.operator("machin3.smart_drive", text='Drive it!', icon='AUTO')
 
     def draw_unity(self, context, m3, layout):
-        all_prepared = True if context.selected_objects and all([obj.M3.unity_exported for obj in context.selected_objects]) else False
+        all_prepared = bool(
+            context.selected_objects
+            and all(obj.M3.unity_exported for obj in context.selected_objects)
+        )
 
         column = layout.column(align=True)
 
@@ -184,7 +187,12 @@ class PanelMACHIN3tools(bpy.types.Panel):
         if not m3.unity_export or not all_prepared:
             row = column.row(align=True)
             row.scale_y = 1.5
-            row.operator("machin3.prepare_unity_export", text="Prepare + Export %s" % ('Selected' if context.selected_objects else 'Visible') if m3.unity_export else "Prepare %s" % ('Selected' if context.selected_objects else 'Visible')).prepare_only = False
+            row.operator(
+                "machin3.prepare_unity_export",
+                text=f"Prepare + Export {'Selected' if context.selected_objects else 'Visible'}"
+                if m3.unity_export
+                else f"Prepare {'Selected' if context.selected_objects else 'Visible'}",
+            ).prepare_only = False
 
         row = column.row(align=True)
         row.scale_y = 1.2

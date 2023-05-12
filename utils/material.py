@@ -3,10 +3,8 @@
 def get_last_node(mat):
     if mat.use_nodes:
         tree = mat.node_tree
-        output = tree.nodes.get("Material Output")
-        if output:
-            surf = output.inputs.get("Surface")
-            if surf:
+        if output := tree.nodes.get("Material Output"):
+            if surf := output.inputs.get("Surface"):
                 if surf.links:
                     return surf.links[0].from_node
 

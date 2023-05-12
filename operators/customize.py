@@ -50,22 +50,16 @@ class Customize(bpy.types.Operator):
                 self.startup(context)
 
 
-        # HIDDEN
+        elif event.alt:
+            self.worlds(context, resourcespath, datafilespath)
 
-        else:
+            self.bookmarks(context)
 
-            # copy custom exrs, setup bookmarks and remove workspaces
-            if event.alt:
-                self.worlds(context, resourcespath, datafilespath)
+            self.clear_workspaces(context)
 
-                self.bookmarks(context)
-
-                self.clear_workspaces(context)
-
-            # just duplicate the workspace
-            elif event.ctrl:
-                self.add_workspaces(context)
-                self.customize_workspace_pie(context)
+        elif event.ctrl:
+            self.add_workspaces(context)
+            self.customize_workspace_pie(context)
 
         return {'FINISHED'}
 

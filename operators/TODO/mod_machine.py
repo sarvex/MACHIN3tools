@@ -71,42 +71,27 @@ class ModMachine(bpy.types.Operator):
                 m3.make_active(obj)
 
                 for mod in obj.modifiers:
-                    if self.applyall:
+                    if (
+                        not self.applyall
+                        and mod.type in applylist
+                        or self.applyall
+                    ):
                         try:
                             if self.applyorshow == "APPLY":
                                 bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
-                                print("Applied '%s's '%s' modifier" % (obj.name, mod.name))
+                                print(f"Applied '{obj.name}'s '{mod.name}' modifier")
                             elif self.applyorshow == "REMOVE":
                                 bpy.ops.object.modifier_remove(modifier=mod.name)
-                                print("Removed '%s's '%s' modifier" % (obj.name, mod.name))
-
+                                print(f"Removed '{obj.name}'s '{mod.name}' modifier")
                             elif self.applyorshow == "SHOW":
                                 mod.show_viewport = True
-                                print("'%s's '%s' modifier is now visible" % (obj.name, mod.name))
+                                print(f"'{obj.name}'s '{mod.name}' modifier is now visible")
                             elif self.applyorshow == "HIDE":
                                 mod.show_viewport = False
-                                print("'%s's '%s' modifier is now hidden" % (obj.name, mod.name))
+                                print(f"'{obj.name}'s '{mod.name}' modifier is now hidden")
                         except:
                             # print(m3.red("Failed to apply modifier") % (obj.name, mod.name))
-                            pass  # seeing some occasioanl utf8 errors, when accessing obj.name or mod.name (even if it isnt writting to the terminal!), likely related to this bug in blender: https://developer.blender.org/T48042
-                    else:
-                        if mod.type in applylist:
-                            try:
-                                if self.applyorshow == "APPLY":
-                                    bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
-                                    print("Applied '%s's '%s' modifier" % (obj.name, mod.name))
-                                elif self.applyorshow == "REMOVE":
-                                    bpy.ops.object.modifier_remove(modifier=mod.name)
-                                    print("Removed '%s's '%s' modifier" % (obj.name, mod.name))
-                                elif self.applyorshow == "SHOW":
-                                    mod.show_viewport = True
-                                    print("'%s's '%s' modifier is now visible" % (obj.name, mod.name))
-                                elif self.applyorshow == "HIDE":
-                                    mod.show_viewport = False
-                                    print("'%s's '%s' modifier is now hidden" % (obj.name, mod.name))
-                            except:
-                                # print(m3.red("Failed to apply modifier") % (obj.name, mod.name))
-                                pass
+                            pass
         m3.make_active(active)
 
         return {'FINISHED'}

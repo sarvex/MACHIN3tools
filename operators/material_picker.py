@@ -12,7 +12,7 @@ def draw_material_pick_status(self, context):
     layout = self.layout
 
     row = layout.row(align=True)
-    row.label(text=f"Material Picker")
+    row.label(text="Material Picker")
 
     row.label(text="", icon='MOUSE_LMB')
     row.label(text="Pick Material")

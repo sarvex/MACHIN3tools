@@ -112,9 +112,13 @@ class SmartEdge(bpy.types.Operator):
             self.is_knife_project = True
 
         if self.sharp and self.sharp_mode in ['CHAMFER', 'KOREAN']:
-            bevels = [mod for mod in active.modifiers if mod.type == 'BEVEL' and mod.limit_method == 'WEIGHT' and mod.name in ['Chamfer', 'Korean Bevel']]
-
-            if bevels:
+            if bevels := [
+                mod
+                for mod in active.modifiers
+                if mod.type == 'BEVEL'
+                and mod.limit_method == 'WEIGHT'
+                and mod.name in ['Chamfer', 'Korean Bevel']
+            ]:
                 bevel = bevels[-1]
 
                 self.bevel_amount = bevel.width
@@ -166,113 +170,92 @@ class SmartEdge(bpy.types.Operator):
                 active.show_wire = self.sharp_mode == 'KOREAN'
 
 
-        # OFFSET EDGES
-
         elif self.offset and edges:
             self.offset_edges(active, edges)
 
 
-        # SMART
+        elif tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (True, False, False):
+            verts = [v for v in bm.verts if v.select]
 
-        else:
+            # KNIFE
+            if len(verts) <= 1:
+                self.is_knife = True
+                bpy.ops.mesh.knife_tool('INVOKE_DEFAULT')
 
-            # vert mode
-            if tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (True, False, False):
-                verts = [v for v in bm.verts if v.select]
+            # PATH / STAR CONNECT
+            else:
 
-                # KNIFE
-                if len(verts) <= 1:
-                    self.is_knife = True
-                    bpy.ops.mesh.knife_tool('INVOKE_DEFAULT')
+                # star connects when appropriate, fall back to path connect otherwise
+                connected = self.star_connect(active, bm)
 
-                # PATH / STAR CONNECT
+                if connected:
+                    self.is_starconnect = True
+
                 else:
-
-                    # star connects when appropriate, fall back to path connect otherwise
-                    connected = self.star_connect(active, bm)
-
-                    if connected:
-                        self.is_starconnect = True
-
-                    else:
-                        try:
-                            bpy.ops.mesh.vert_connect_path()
-                            self.is_connect = True
-                        except:
-                            self.report({'ERROR'}, "Could not connect vertices")
-                            return {'CANCELLED'}
-
-            # edge mode
-            elif tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, True, False):
-
-                # LOOPCUT
-
-                if len(edges) == 0:
-                    self.is_loop_cut = True
-                    bpy.ops.mesh.loopcut_slide('INVOKE_DEFAULT')
-
-
-                # BRIDGE
-
-                elif all([not e.is_manifold for e in edges]):
                     try:
-                        bpy.ops.mesh.bridge_edge_loops(number_cuts=self.bridge_cuts, interpolation=self.bridge_interpolation)
-                        self.draw_bridge_props = True
+                        bpy.ops.mesh.vert_connect_path()
+                        self.is_connect = True
                     except:
-                        popup_message("SmartEdge in Bridge mode requires two separate, non-manifold edge loops.")
+                        self.report({'ERROR'}, "Could not connect vertices")
                         return {'CANCELLED'}
 
-
-                # TURN EDGE
-
-                elif 1 <= len(edges) < 4:
-                    self.is_turn = True
-                    bpy.ops.mesh.edge_rotate(use_ccw=False)
-
-
-                # SELECT
-
-                elif len(edges) >= 4:
-                    self.is_select = True
-
-                    # LOOP TO REGION
-
-                    if self.select_mode == 'BOUNDS':
-                        self.is_region = True
-                        bpy.ops.mesh.loop_to_region()
-                        bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
-
-                    # ADJACENT FACES
-
-                    elif self.select_mode == 'ADJACENT':
-                        self.select_adjacent_faces(active, edges)
-
-
-            # face mode:
-            elif tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, False, True):
-                faces = [f for f in bm.faces if f.select]
+        elif tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, True, False):
 
                 # LOOPCUT
 
-                if not faces:
-                    self.is_loop_cut = True
-                    bpy.ops.mesh.loopcut_slide('INVOKE_DEFAULT')
+            if not edges:
+                self.is_loop_cut = True
+                bpy.ops.mesh.loopcut_slide('INVOKE_DEFAULT')
 
 
-                # SELECT
+            elif all(not e.is_manifold for e in edges):
+                try:
+                    bpy.ops.mesh.bridge_edge_loops(number_cuts=self.bridge_cuts, interpolation=self.bridge_interpolation)
+                    self.draw_bridge_props = True
+                except:
+                    popup_message("SmartEdge in Bridge mode requires two separate, non-manifold edge loops.")
+                    return {'CANCELLED'}
 
-                else:
-                    self.is_select = True
 
-                    # REGION TO LOOP
+            elif 1 <= len(edges) < 4:
+                self.is_turn = True
+                bpy.ops.mesh.edge_rotate(use_ccw=False)
 
-                    if self.select_mode == 'BOUNDS':
-                        bpy.ops.mesh.region_to_loop()
 
-                    # ADJACENT EDGES
+            elif len(edges) >= 4:
+                self.is_select = True
 
-                    elif self.select_mode == 'ADJACENT':
-                        self.select_adjacent_edges(active, edges, faces)
+                # LOOP TO REGION
+
+                if self.select_mode == 'BOUNDS':
+                    self.is_region = True
+                    bpy.ops.mesh.loop_to_region()
+                    bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+
+                # ADJACENT FACES
+
+                elif self.select_mode == 'ADJACENT':
+                    self.select_adjacent_faces(active, edges)
+
+
+        elif tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, False, True):
+            if faces := [f for f in bm.faces if f.select]:
+                self.is_select = True
+
+                # REGION TO LOOP
+
+                if self.select_mode == 'BOUNDS':
+                    bpy.ops.mesh.region_to_loop()
+
+                # ADJACENT EDGES
+
+                elif self.select_mode == 'ADJACENT':
+                    self.select_adjacent_edges(active, edges, faces)
+
+
+            else:
+                self.is_loop_cut = True
+                bpy.ops.mesh.loopcut_slide('INVOKE_DEFAULT')
 
 
         return {'FINISHED'}
@@ -291,10 +274,10 @@ class SmartEdge(bpy.types.Operator):
 
         # check for each selected vert, if every connected edge or face is also selected
         for v in verts:
-            if not all(e in edges for e in v.link_edges):
+            if any(e not in edges for e in v.link_edges):
                 return False
 
-            if not all(f in faces for f in v.link_faces):
+            if any(f not in faces for f in v.link_faces):
                 return False
         return True
 
@@ -302,9 +285,7 @@ class SmartEdge(bpy.types.Operator):
         bpy.ops.mesh.separate(type='SELECTED')
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        sel = [obj for obj in context.selected_objects if obj != active]
-
-        if sel:
+        if sel := [obj for obj in context.selected_objects if obj != active]:
             for obj in sel:
                 obj.select_set(False)
 
@@ -348,13 +329,12 @@ class SmartEdge(bpy.types.Operator):
         '''
 
         # existing bevelled edges among selection: remove weigts
-        if any([e[bw] > 0 for e in edges]):
+        if any(e[bw] > 0 for e in edges):
             self.bevel_weight = max(e[bw] for e in edges)
             weight = 0
 
             self.is_unbevel = True
 
-        # no weighted edges found: set weights
         else:
             weight = self.bevel_weight
 
@@ -372,13 +352,7 @@ class SmartEdge(bpy.types.Operator):
         bevels = [mod for mod in active.modifiers if mod.type == 'BEVEL' and mod.limit_method == 'WEIGHT' and mod.name in ['Chamfer', 'Korean Bevel']]
 
         # add new mod
-        if not bevels:
-            bevel = add_bevel(active)
-
-        # use the existing mod
-        else:
-            bevel = bevels[-1]
-
+        bevel = add_bevel(active) if not bevels else bevels[-1]
         bevel.width = self.bevel_amount
         bevel.use_clamp_overlap = self.bevel_clamp
         bevel.loop_slide = self.bevel_loop
@@ -398,7 +372,7 @@ class SmartEdge(bpy.types.Operator):
         remove chamfer/korean bevel mods if no weighted edges are found anymore
         '''
 
-        if all([e[bw] == 0 for e in bm.edges]):
+        if all(e[bw] == 0 for e in bm.edges):
             bevels = [mod for mod in active.modifiers if mod.type == 'BEVEL' and mod.limit_method == 'WEIGHT' and mod.name in ['Chamfer', 'Korean Bevel']]
 
             for bevel in bevels:
@@ -452,7 +426,7 @@ class SmartEdge(bpy.types.Operator):
 
         common = None
         for f in faces:
-            if all([v in f.verts for v in verts]):
+            if all(v in f.verts for v in verts):
                 common = f
 
         # with only two verts, only a path connect makes sence, unless the verts are connected already, then nothing should be done, it works even without a history in the case of just 2

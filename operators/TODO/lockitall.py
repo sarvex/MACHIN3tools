@@ -35,11 +35,7 @@ class LockItAll(bpy.types.Operator):
     def execute(self, context):
         selection = m3.selected_objects()
 
-        if self.lockorunlock == "LOCK":
-            lock = True
-        else:
-            lock = False
-
+        lock = self.lockorunlock == "LOCK"
         for obj in selection:
             if self.location:
                 for i in range(len(obj.lock_location)):

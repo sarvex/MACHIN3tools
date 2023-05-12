@@ -46,7 +46,6 @@ class ViewAxis(bpy.types.Operator):
             # always use ortho for aligned views like this
             r3d.view_perspective = 'ORTHO'
 
-        # align custom view in object or cursor space
         elif m3.custom_views_local or m3.custom_views_cursor:
             mx = context.scene.cursor.matrix if m3.custom_views_cursor else context.active_object.matrix_world if m3.custom_views_local and context.active_object else None
 
@@ -63,9 +62,7 @@ class ViewAxis(bpy.types.Operator):
             if context.mode == 'EDIT_MESH':
                 bm = bmesh.from_edit_mesh(context.active_object.data)
 
-                verts = [v for v in bm.verts if v.select]
-
-                if verts:
+                if verts := [v for v in bm.verts if v.select]:
                     loc = context.active_object.matrix_world @ average_locations([v.co for v in verts])
 
             r3d.view_location = loc
@@ -73,7 +70,6 @@ class ViewAxis(bpy.types.Operator):
 
             r3d.view_perspective = 'ORTHO'
 
-        # align in world space
         else:
             bpy.ops.view3d.view_axis(type=self.axis, align_active=False)
 
@@ -144,8 +140,7 @@ class MakeCamActive(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        active = context.active_object
-        if active:
+        if active := context.active_object:
             return active.type == "CAMERA"
 
     def execute(self, context):
@@ -166,21 +161,18 @@ class SmartViewCam(bpy.types.Operator):
 
     def invoke(self, context, event):
         cams = [obj for obj in context.scene.objects if obj.type == "CAMERA"]
-        view = context.space_data
-
         # create camera from view
         if not cams or event.alt:
             bpy.ops.object.camera_add()
             context.scene.camera = context.active_object
             bpy.ops.view3d.camera_to_view()
 
-        # view the active cam, or make cam active and view it if active obj is camera
         else:
-            active = context.active_object
-
-            if active:
+            if active := context.active_object:
                 if active in context.selected_objects and active.type == "CAMERA":
                     context.scene.camera = active
+
+            view = context.space_data
 
             # if the viewport is already aligned to a camera, toggle two times perspective/ortho. If you stay in cammera mode, the view camera op below will throw an exception. Two times, so you dont swich from perp to ortho
             if view.region_3d.view_perspective == 'CAMERA':
@@ -246,11 +238,7 @@ class ToggleCamPerspOrtho(bpy.types.Operator):
     def execute(self, context):
         cam = context.scene.camera
 
-        if cam.data.type == "PERSP":
-            cam.data.type = "ORTHO"
-        else:
-            cam.data.type = "PERSP"
-
+        cam.data.type = "ORTHO" if cam.data.type == "PERSP" else "PERSP"
         return {'FINISHED'}
 
 

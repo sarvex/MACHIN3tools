@@ -57,7 +57,6 @@ class SmartFace(bpy.types.Operator):
 
                 return {'FINISHED'}
 
-        # face mode - duplicate and separate selection
         elif self.mode[2]:
             faces = [f for f in bm.faces if f.select]
 
@@ -67,9 +66,9 @@ class SmartFace(bpy.types.Operator):
 
                 bpy.ops.object.mode_set(mode='OBJECT')
 
-                objs = [obj for obj in context.selected_objects if obj != active]
-
-                if objs:
+                if objs := [
+                    obj for obj in context.selected_objects if obj != active
+                ]:
                     obj = objs[0]
 
                     active.select_set(False)

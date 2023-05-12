@@ -28,12 +28,10 @@ class Group(bpy.types.Operator):
         '''
 
         if context.mode == 'OBJECT':
-            sel = [obj for obj in context.selected_objects]
+            sel = list(context.selected_objects)
             if len(sel) == 1:
                 obj = sel[0]
-                parent = obj.parent
-
-                if parent:
+                if parent := obj.parent:
                     booleans = [mod for mod in parent.modifiers if mod.type == 'BOOLEAN' and mod.object == obj]
                     if booleans:
                         return False
@@ -58,10 +56,11 @@ class Group(bpy.types.Operator):
         return self.execute(context)
 
     def execute(self, context):
-        # get selection, but ignore objects that are regularly parented(as opposed to grouped)
-        sel = {obj for obj in context.selected_objects if (obj.parent and obj.parent.M3.is_group_empty) or not obj.parent}
-
-        if sel:
+        if sel := {
+            obj
+            for obj in context.selected_objects
+            if (obj.parent and obj.parent.M3.is_group_empty) or not obj.parent
+        }:
             self.group(context, sel)
 
             return {'FINISHED'}
@@ -286,13 +285,13 @@ class Groupify(bpy.types.Operator):
         for obj in objects:
             if obj.type == 'EMPTY' and not obj.M3.is_group_empty and obj.children:
                 obj.M3.is_group_empty = True
-                obj.M3.is_group_object = True if obj.parent and obj.parent.M3.is_group_empty else False
+                obj.M3.is_group_object = bool(obj.parent and obj.parent.M3.is_group_empty)
                 obj.show_in_front = True
                 obj.empty_display_type = 'CUBE'
                 obj.empty_display_size = get_prefs().group_size
                 obj.show_name = True
 
-                if not any([s in obj.name.lower() for s in ['grp', 'group']]):
+                if all(s not in obj.name.lower() for s in ['grp', 'group']):
                     obj.name = f"{obj.name}_GROUP"
 
                 # do it all the way down
@@ -444,8 +443,8 @@ class Add(bpy.types.Operator):
             # the poll is nerfed for the redo panel, so ensure there actually is an active child
             active_group = context.active_object.parent if context.active_object and context.active_object.M3.is_group_object and context.active_object.select_get() else None
 
-            if not active_group:
-                return {'CANCELLED'}
+        if not active_group:
+            return {'CANCELLED'}
 
         # get the addable objects, all objects that aren't the active group or among its direct children, so including selected objects of other groups, but not those children whose parents are also selected, bc you want to keeps those hierarchies
         objects = [obj for obj in context.selected_objects if obj != active_group and obj not in active_group.children and (not obj.parent or (obj.parent and obj.parent.M3.is_group_empty and not obj.parent.select_get()))]
@@ -490,7 +489,12 @@ class Add(bpy.types.Operator):
             if self.realign_group_empty:
 
                 # get the new group empties matrix
-                gmx = get_group_matrix(context, [c for c in active_group.children], self.location, self.rotation)
+                gmx = get_group_matrix(
+                    context,
+                    list(active_group.children),
+                    self.location,
+                    self.rotation,
+                )
 
                 # compensate the children location, so they stay in place
                 compensate_children(active_group, active_group.matrix_world, gmx)
@@ -519,9 +523,9 @@ class Add(bpy.types.Operator):
 
         for c in children:
             if c.M3.is_group_object and not c.M3.is_group_empty and c.type == 'MESH':
-                mirrors = get_mods_as_dict(c, types=['MIRROR'], skip_show_expanded=True)
-
-                if mirrors:
+                if mirrors := get_mods_as_dict(
+                    c, types=['MIRROR'], skip_show_expanded=True
+                ):
                     all_mirrors[c] = mirrors
 
         # first check if all the children actually have mirror mods
@@ -529,7 +533,11 @@ class Add(bpy.types.Operator):
 
 
             # get the mirror props of the object
-            obj_props = [props for props in get_mods_as_dict(obj, types=['MIRROR'], skip_show_expanded=True).values()]
+            obj_props = list(
+                get_mods_as_dict(
+                    obj, types=['MIRROR'], skip_show_expanded=True
+                ).values()
+            )
 
             # then find the common mirror props among all the groups children
             # if there's only a single object with mirrors in the group, no commonally needs to be checked of course
@@ -537,7 +545,6 @@ class Add(bpy.types.Operator):
 
                 common_props = [props for props in next(iter(all_mirrors.values())).values() if props not in obj_props]
 
-            # for mutliple objects with mirrors, get all the mods shared by all the group's children
             else:
                 common_props = []
 
@@ -545,14 +552,20 @@ class Add(bpy.types.Operator):
                     others = [obj for obj in all_mirrors if obj != c]
 
                     for name, props in mirrors.items():
-                        if all(props in all_mirrors[o].values() for o in others) and props not in common_props:
-                            if props not in obj_props:
-                                common_props.append(props)
+                        if (
+                            all(props in all_mirrors[o].values() for o in others)
+                            and props not in common_props
+                            and props not in obj_props
+                        ):
+                            common_props.append(props)
 
 
             # create proper mods dict from list of common props, using mod names as keys
             if common_props:
-                common_mirrors = {f"Mirror{'.' + str(idx).zfill(3) if idx else ''}": props for idx, props in enumerate(common_props)}
+                common_mirrors = {
+                    f"Mirror{f'.{str(idx).zfill(3)}' if idx else ''}": props
+                    for idx, props in enumerate(common_props)
+                }
 
                 # add the mods
                 add_mods_from_dict(obj, common_mirrors)
@@ -618,9 +631,7 @@ class Remove(bpy.types.Operator):
             # optionally re-align the goup empty
             if self.realign_group_empty:
                 for e in empties:
-                    children = [c for c in e.children]
-
-                    if children:
+                    if children := list(e.children):
                         gmx = get_group_matrix(context, children, self.location, self.rotation)
 
                         # compensate the children location, so they stay in place
@@ -714,7 +725,7 @@ class CollapseOutliner(bpy.types.Operator):
         # print("child depth", child_depth)
 
         # collapse the max amount of the two, plus once more, in case meshes are expanded too
-        for i in range(max(col_depth, child_depth) + 1):
+        for _ in range(max(col_depth, child_depth) + 1):
             bpy.ops.outliner.show_one_level(open=False)
 
         return {'FINISHED'}
@@ -739,7 +750,7 @@ class ExpandOutliner(bpy.types.Operator):
         depth = get_collection_depth(self, [context.scene.collection], init=True)
 
         # expand collections
-        for i in range(depth):
+        for _ in range(depth):
             bpy.ops.outliner.show_one_level(open=True)
 
         return {'FINISHED'}

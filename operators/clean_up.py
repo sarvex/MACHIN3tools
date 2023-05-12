@@ -135,8 +135,8 @@ class CleanUp(bpy.types.Operator):
                 edges += counts[1]
                 faces += counts[2]
 
-            text = f"Removed:{' Verts: ' + str(verts) if verts else ''}{' Edges: ' + str(edges) if edges else ''}{' Faces: ' + str(faces) if faces else ''}"
-            extreme = any([c >= 10 for c in [verts, edges, faces]])
+            text = f"Removed:{f' Verts: {str(verts)}' if verts else ''}{f' Edges: {str(edges)}' if edges else ''}{f' Faces: {str(faces)}' if faces else ''}"
+            extreme = any(c >= 10 for c in [verts, edges, faces])
             time = get_prefs().HUD_fade_clean_up
 
             if is_any_non_manifold:
@@ -184,7 +184,7 @@ class CleanUp(bpy.types.Operator):
                 for f in bm.faces:
                     f.normal_flip()
 
-        is_non_manifold = any([e for e in bm.edges if not e.is_manifold])
+        is_non_manifold = any(e for e in bm.edges if not e.is_manifold)
 
         return bm, elementcounts, is_non_manifold
 
@@ -204,7 +204,7 @@ class CleanUp(bpy.types.Operator):
             bmesh.ops.delete(bm, geom=loose_edges, context="EDGES")
 
         if self.delete_loose_faces:
-            loose_faces = [f for f in bm.faces if all([not e.is_manifold for e in f.edges])]
+            loose_faces = [f for f in bm.faces if all(not e.is_manifold for e in f.edges)]
             bmesh.ops.delete(bm, geom=loose_faces, context="FACES")
 
     def dissolve_redundant_geometry(self, bm):
@@ -268,7 +268,7 @@ class CleanUp(bpy.types.Operator):
             for f in faces:
                 distances = [distance_point_to_plane(v.co, f.calc_center_median(), f.normal) for v in f.verts]
 
-                if any([d for d in distances if abs(d) > self.planar_threshold]):
+                if any(d for d in distances if abs(d) > self.planar_threshold):
                     f.select_set(True)
 
         elif self.select_type == "TRIS":

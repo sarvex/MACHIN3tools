@@ -26,10 +26,9 @@ class New(bpy.types.Operator):
     def invoke(self, context, event):
         if bpy.data.is_dirty:
             return context.window_manager.invoke_confirm(self, event)
-        else:
-            # bpy.ops.wm.read_homefile(app_template="", load_ui=True)
-            bpy.ops.wm.read_homefile(load_ui=True)
-            return {'FINISHED'}
+        # bpy.ops.wm.read_homefile(app_template="", load_ui=True)
+        bpy.ops.wm.read_homefile(load_ui=True)
+        return {'FINISHED'}
 
 
 # TODO: file size output
@@ -41,22 +40,18 @@ class Save(bpy.types.Operator):
 
     @classmethod
     def description(cls, context, properties):
-        currentblend = bpy.data.filepath
-
-        if currentblend:
+        if currentblend := bpy.data.filepath:
             return f"Save {currentblend}"
         return "Save unsaved file as..."
 
     def execute(self, context):
-        currentblend = bpy.data.filepath
-
-        if currentblend:
+        if currentblend := bpy.data.filepath:
             bpy.ops.wm.save_mainfile()
 
             t = time.time()
             localt = time.strftime('%H:%M:%S', time.localtime(t))
-            print("%s | Saved blend: %s" % (localt, currentblend))
-            self.report({'INFO'}, 'Saved "%s"' % (os.path.basename(currentblend)))
+            print(f"{localt} | Saved blend: {currentblend}")
+            self.report({'INFO'}, f'Saved "{os.path.basename(currentblend)}"')
 
         else:
             bpy.ops.wm.save_mainfile('INVOKE_DEFAULT')
@@ -142,20 +137,14 @@ class SaveIncremental(bpy.types.Operator):
 
     @classmethod
     def description(cls, context, properties):
-        currentblend = bpy.data.filepath
-
-        if currentblend:
-            incrpaths = get_incremented_paths(currentblend)
-
-            if incrpaths:
+        if currentblend := bpy.data.filepath:
+            if incrpaths := get_incremented_paths(currentblend):
                 return f"Save {currentblend} incrementally to {os.path.basename(incrpaths[0])}\nALT: Save to {os.path.basename(incrpaths[1])}"
 
         return "Save unsaved file as..."
 
     def invoke(self, context, event):
-        currentblend = bpy.data.filepath
-
-        if currentblend:
+        if currentblend := bpy.data.filepath:
             incrpaths = get_incremented_paths(currentblend)
             savepath = incrpaths[1] if event.alt else incrpaths[0]
 
@@ -192,7 +181,7 @@ class SaveVersionedStartupFile(bpy.types.Operator):
 
         if os.path.exists(startup_path):
             indices = [int(f.replace('startup.blend', '')) for f in os.listdir(bpy.utils.user_resource('CONFIG')) if 'startup.blend' in f and f != 'startup.blend']
-            biggest_idx = max(indices) if indices else 0
+            biggest_idx = max(indices, default=0)
 
             # create latest versioned startup file from current one
             os.rename(startup_path, os.path.join(config_path, f'startup.blend{biggest_idx + 1}'))
@@ -206,7 +195,7 @@ class SaveVersionedStartupFile(bpy.types.Operator):
             # save current file as startup file
             bpy.ops.wm.save_homefile()
 
-            self.report({'INFO'}, f'Initial Startup File saved')
+            self.report({'INFO'}, 'Initial Startup File saved')
 
         return {'FINISHED'}
 
@@ -223,7 +212,7 @@ class LoadMostRecent(bpy.types.Operator):
         try:
             with open(recent_path) as file:
                 recent_files = file.read().splitlines()
-        except (IOError, OSError, FileNotFoundError):
+        except (IOError, OSError):
             recent_files = []
 
         if recent_files:
@@ -231,10 +220,10 @@ class LoadMostRecent(bpy.types.Operator):
 
             if os.path.exists(most_recent):
                 bpy.ops.wm.open_mainfile(filepath=most_recent, load_ui=True)
-                self.report({'INFO'}, 'Loaded most recent "%s"' % (os.path.basename(most_recent)))
+                self.report({'INFO'}, f'Loaded most recent "{os.path.basename(most_recent)}"')
 
             else:
-                popup_message("File %s does not exist" % (most_recent), title="File not found")
+                popup_message(f"File {most_recent} does not exist", title="File not found")
 
         return {'FINISHED'}
 
@@ -265,7 +254,10 @@ class LoadPrevious(bpy.types.Operator):
                     self.execute(context)
 
             else:
-                popup_message("You've reached the first file in the current foler: %s." % (path), title="Info")
+                popup_message(
+                    f"You've reached the first file in the current foler: {path}.",
+                    title="Info",
+                )
 
         return {'FINISHED'}
 
@@ -321,7 +313,10 @@ class LoadNext(bpy.types.Operator):
                 else:
                     self.execute(context)
             else:
-                popup_message("You've reached the last file in the current foler: %s." % (path), title="Info")
+                popup_message(
+                    f"You've reached the last file in the current foler: {path}.",
+                    title="Info",
+                )
 
         return {'FINISHED'}
 
@@ -489,7 +484,7 @@ class Clean(bpy.types.Operator):
         for col in bpy.data.collections:
             bpy.data.collections.remove(col, do_unlink=True)
 
-        for i in range(5):
+        for _ in range(5):
             bpy.ops.outliner.orphans_purge()
 
         if context.space_data.local_view:
@@ -529,9 +524,7 @@ class ScreenCast(bpy.types.Operator):
 
     @classmethod
     def description(cls, context, properties):
-        screencast_keys = get_addon('Screencast Keys')[0]
-
-        if screencast_keys:
+        if screencast_keys := get_addon('Screencast Keys')[0]:
             return "Screen Cast recent Operators and Keys"
         return "Screen Cast Recent Operators"
 
@@ -541,17 +534,12 @@ class ScreenCast(bpy.types.Operator):
         wm = context.window_manager
         setattr(wm, 'M3_screen_cast', not getattr(wm, 'M3_screen_cast', False))
 
-        screencast_keys = get_addon('Screencast Keys')[0]
-
-        if screencast_keys:
-
+        if screencast_keys := get_addon('Screencast Keys')[0]:
             # switch workspaces back and forth
             # this prevents "internal error: modal gizmo-map handler has invalid area" errors when maximizing the view
 
             current = context.workspace
-            other = [ws for ws in bpy.data.workspaces if ws != current]
-
-            if other:
+            if other := [ws for ws in bpy.data.workspaces if ws != current]:
                 context.window.workspace = other[0]
                 context.window.workspace = current
 

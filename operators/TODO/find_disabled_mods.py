@@ -25,7 +25,7 @@ class FindDisabledMods(bpy.types.Operator):
                     if obj not in disabled:
                         disabled.append(obj.name)
                         print(obj.name)
-                    print(" » " + modname, "is DISABLED!\n")
+                    print(f" » {modname}", "is DISABLED!\n")
 
         # undo applying all those mods, as it's only done to trigger exceptions and find disabled mods
         bpy.ops.ed.undo()

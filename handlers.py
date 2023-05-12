@@ -42,10 +42,12 @@ def update_group(none):
 
         # STORE USER-SET EMPTY SIZE
 
-        if active:
-            # without this you can't actually set a new empty size, because it would be immediately reset to the stored value, if group_hide is enabled
-            if round(active.empty_display_size, 4) != 0.0001 and active.empty_display_size != active.M3.group_size:
-                active.M3.group_size = active.empty_display_size
+        if (
+            active
+            and round(active.empty_display_size, 4) != 0.0001
+            and active.empty_display_size != active.M3.group_size
+        ):
+            active.M3.group_size = active.empty_display_size
 
 
         # HIDE / UNHIDE
@@ -188,10 +190,7 @@ def surface_slide_HUD(scene):
     if surfaceslideHUD and "RNA_HANDLE_REMOVED" in str(surfaceslideHUD):
         surfaceslideHUD = None
 
-    # avoid AttributeError: 'Context' object has no attribute 'active_object'
-    active = getattr(bpy.context, 'active_object', None)
-
-    if active:
+    if active := getattr(bpy.context, 'active_object', None):
         surfaceslide = [mod for mod in active.modifiers if mod.type == 'SHRINKWRAP' and 'SurfaceSlide' in mod.name]
 
         if surfaceslide and not surfaceslideHUD:
@@ -231,21 +230,27 @@ debug = False
 def decrease_lights_on_render_start(scene):
     m3 = scene.M3
 
-    if get_prefs().activate_render and get_prefs().activate_shading_pie and get_prefs().render_adjust_lights_on_render and get_area_light_poll() and m3.adjust_lights_on_render:
-        if scene.render.engine == 'CYCLES':
-            last = m3.adjust_lights_on_render_last
-            divider = m3.adjust_lights_on_render_divider
+    if (
+        get_prefs().activate_render
+        and get_prefs().activate_shading_pie
+        and get_prefs().render_adjust_lights_on_render
+        and get_area_light_poll()
+        and m3.adjust_lights_on_render
+        and scene.render.engine == 'CYCLES'
+    ):
+        last = m3.adjust_lights_on_render_last
+        divider = m3.adjust_lights_on_render_divider
 
-            # decrease on start of rendering
-            if last in ['NONE', 'INCREASE'] and divider > 1:
-                if debug:
-                    print()
-                    print("decreasing lights for cycles when starting render")
+        # decrease on start of rendering
+        if last in ['NONE', 'INCREASE'] and divider > 1:
+            if debug:
+                print()
+                print("decreasing lights for cycles when starting render")
 
-                m3.adjust_lights_on_render_last = 'DECREASE'
-                m3.is_light_decreased_by_handler = True
+            m3.adjust_lights_on_render_last = 'DECREASE'
+            m3.is_light_decreased_by_handler = True
 
-                adjust_lights_for_rendering(mode='DECREASE')
+            adjust_lights_for_rendering(mode='DECREASE')
 
     if get_prefs().activate_render and get_prefs().render_sync_light_visibility:
         sync_light_visibility(scene)
@@ -255,17 +260,23 @@ def decrease_lights_on_render_start(scene):
 def increase_lights_on_render_end(scene):
     m3 = scene.M3
 
-    if get_prefs().activate_render and get_prefs().activate_shading_pie and get_prefs().render_adjust_lights_on_render and get_area_light_poll() and m3.adjust_lights_on_render:
-        if scene.render.engine == 'CYCLES':
-            last = m3.adjust_lights_on_render_last
+    if (
+        get_prefs().activate_render
+        and get_prefs().activate_shading_pie
+        and get_prefs().render_adjust_lights_on_render
+        and get_area_light_poll()
+        and m3.adjust_lights_on_render
+        and scene.render.engine == 'CYCLES'
+    ):
+        last = m3.adjust_lights_on_render_last
 
-            # increase again when finished
-            if last == 'DECREASE' and m3.is_light_decreased_by_handler:
-                if debug:
-                    print()
-                    print("increasing lights for cycles when finshing/aborting render")
+        # increase again when finished
+        if last == 'DECREASE' and m3.is_light_decreased_by_handler:
+            if debug:
+                print()
+                print("increasing lights for cycles when finshing/aborting render")
 
-                m3.adjust_lights_on_render_last = 'INCREASE'
-                m3.is_light_decreased_by_handler = False
+            m3.adjust_lights_on_render_last = 'INCREASE'
+            m3.is_light_decreased_by_handler = False
 
-                adjust_lights_for_rendering(mode='INCREASE')
+            adjust_lights_for_rendering(mode='INCREASE')

@@ -40,7 +40,7 @@ class QuadSphere(bpy.types.Operator):
         if self.shade_smooth:
             bpy.ops.mesh.faces_shade_smooth()
 
-        for sub in range(self.subdivisions):
+        for _ in range(self.subdivisions):
             bpy.ops.mesh.subdivide(number_cuts=1, smoothness=1)
             bpy.ops.transform.tosphere(value=1)
 

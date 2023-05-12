@@ -2,10 +2,7 @@ import sys
 
 
 def build_mesh_graph(verts, edges, topo=True):
-    mg = {}
-    for v in verts:
-        mg[v] = []
-
+    mg = {v: [] for v in verts}
     for e in edges:
         distance = 1 if topo else e.calc_length()
 
@@ -78,8 +75,8 @@ def get_shortest_path(bm, vstart, vend, topo=False, select=False):
         seen_add = seen.add
         return [x for x in seq if not (x in seen or seen_add(x))]
 
-    verts = [v for v in bm.verts]
-    edges = [e for e in bm.edges]
+    verts = list(bm.verts)
+    edges = list(bm.edges)
 
     mg = build_mesh_graph(verts, edges, topo)
 

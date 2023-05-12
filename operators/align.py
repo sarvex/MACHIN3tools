@@ -135,12 +135,11 @@ class Align(bpy.types.Operator):
             if active and active.M3.is_group_empty and active.children:
                 sel = [active]
 
-        # if there are group empties in the selection, select the top_level ones only!
         elif self.mode in 'ACTIVE':
             all_empties = [obj for obj in sel if obj.M3.is_group_empty and obj != active]
-            top_level = [obj for obj in all_empties if obj.parent not in all_empties]
-
-            if top_level:
+            if top_level := [
+                obj for obj in all_empties if obj.parent not in all_empties
+            ]:
                 sel = top_level
 
         if self.mode == 'ORIGIN':
@@ -473,13 +472,7 @@ class AlignRelative(bpy.types.Operator):
 
         # SELECTION PASSTHROUGH
 
-        if event.type == 'LEFTMOUSE':
-            return {'PASS_THROUGH'}
-
-
-        # NAVIGATION PASSTHROUGH
-
-        elif event.type == 'MIDDLEMOUSE':
+        if event.type in ['LEFTMOUSE', 'MIDDLEMOUSE']:
             return {'PASS_THROUGH'}
 
 
@@ -648,10 +641,20 @@ class AlignRelative(bpy.types.Operator):
         re-group, if the dup is in the same group as the reference, and the target is also in a group
         '''
 
-        if target.M3.is_group_object and target.parent and target.parent.M3.is_group_empty:
-            if (dup.M3.is_group_object and self.active.M3.is_group_object) and (dup.parent and self.active.parent) and (dup.parent.M3.is_group_empty and self.active.parent.M3.is_group_empty) and (dup.parent == self.active.parent):
-                if debug:
-                    print("  regrouping to", target.name)
+        if (
+            target.M3.is_group_object
+            and target.parent
+            and target.parent.M3.is_group_empty
+            and (dup.M3.is_group_object and self.active.M3.is_group_object)
+            and (dup.parent and self.active.parent)
+            and (
+                dup.parent.M3.is_group_empty
+                and self.active.parent.M3.is_group_empty
+            )
+            and (dup.parent == self.active.parent)
+        ):
+            if debug:
+                print("  regrouping to", target.name)
 
-                unparent(dup)
-                parent(dup, target.parent)
+            unparent(dup)
+            parent(dup, target.parent)

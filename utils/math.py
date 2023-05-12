@@ -19,11 +19,7 @@ def dynamic_format(value, decimal_offset=0):
     l10 = log10(abs(value))
     f = floor(abs(l10))
 
-    if l10 < 0:
-        precision = f + 1 + decimal_offset
-
-    else:
-        precision = decimal_offset
+    precision = f + 1 + decimal_offset if l10 < 0 else decimal_offset
     return f"{'-' if value < 0 else ''}{abs(value):.{precision}f}"
 
 
@@ -114,16 +110,12 @@ def create_rotation_matrix_from_vertex(obj, vert):
 
     # get binormal from longest linked edge
     if vert.link_edges:
-        longest_edge = max([e for e in vert.link_edges], key=lambda x: x.calc_length())
+        longest_edge = max(list(vert.link_edges), key=lambda x: x.calc_length())
         binormal = (mx.to_3x3() @ (longest_edge.other_vert(vert).co - vert.co)).normalized()
 
         # the tangent is a simple cross product
         tangent = binormal.cross(normal).normalized()
 
-        # recalculate the binormal, because it's not guarantieed the previous one is 90 degrees to the normal
-        binormal = normal.cross(tangent).normalized()
-
-    # without linked faces get a binormal from the objects up vector
     else:
         objup = (mx.to_3x3() @ Vector((0, 0, 1))).normalized()
 
@@ -133,7 +125,8 @@ def create_rotation_matrix_from_vertex(obj, vert):
             objup = (mx.to_3x3() @ Vector((1, 0, 0))).normalized()
 
         tangent = normal.cross(objup).normalized()
-        binormal = normal.cross(tangent).normalized()
+    # recalculate the binormal, because it's not guarantieed the previous one is 90 degrees to the normal
+    binormal = normal.cross(tangent).normalized()
 
     # we want the normal, tangent and binormal to become Z, X and Y, in that order
     # see http://renderdan.blogspot.com/2006/05/rotation-matrix-from-axis-vectors.html
@@ -261,7 +254,7 @@ def get_right_and_up_axes(context, mx):
     axis_up = max(axes_up, key=lambda x: abs(x[0]))
 
     # determine flip
-    flip_right = True if axis_right[0] < 0 else False
-    flip_up = True if axis_up[0] < 0 else False
+    flip_right = axis_right[0] < 0
+    flip_up = axis_up[0] < 0
 
     return axis_right[1], axis_up[1], flip_right, flip_up

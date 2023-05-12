@@ -91,9 +91,18 @@ def calculate_thread(segments=12, loops=2, radius=1, depth=0.1, h1=0.2, h2=0.0, 
             if segment > 0:
 
                 # create thread face indices, pcount - 1 rows of them
-                for p in range(pcount - 1):
-                    indices.append([len(coords) + i + p for i in [-pcount * 2, -pcount, -pcount + 1, -pcount * 2 + 1]])
-
+                indices.extend(
+                    [
+                        len(coords) + i + p
+                        for i in [
+                            -pcount * 2,
+                            -pcount,
+                            -pcount + 1,
+                            -pcount * 2 + 1,
+                        ]
+                    ]
+                    for p in range(pcount - 1)
+                )
                 # create bottom face indices
                 if loop == 0:
                     if segment < segments:

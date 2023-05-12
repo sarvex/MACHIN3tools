@@ -252,11 +252,11 @@ class Render(bpy.types.Operator):
         render = self.settings['render']
         cycles = self.settings['cycles']
 
-        resolution = self.settings['resolution']
         samples = self.settings['samples']
         threshold = self.settings['threshold']
 
         if any([self.quarter_qual, self.half_qual, self.double_qual, self.quad_qual]):
+            resolution = self.settings['resolution']
             self.strings['resolution_terminal'] = f"{render.resolution_x}x{render.resolution_y} ({resolution[0]}x{resolution[1]})"
             self.strings['samples_terminal'] = f"{cycles.samples} ({samples})"
             self.strings['threshold_terminal'] = f" and a noise threshold of {dynamic_format(cycles.adaptive_threshold)} ({dynamic_format(threshold)})" if cycles.use_adaptive_sampling else ''
@@ -287,11 +287,7 @@ class Render(bpy.types.Operator):
             if self.seed:
                 prefix += ' Seed'
         else:
-            if self.seed:
-                prefix += 'Seed'
-            else:
-                prefix += 'Quick'
-
+            prefix += 'Seed' if self.seed else 'Quick'
         quality = self.strings['quality']
         resolution = self.strings['resolution_terminal']
         samples = self.strings['samples_terminal']
@@ -375,7 +371,7 @@ class Render(bpy.types.Operator):
             basename += f"_seed_{seed}"
 
         if suffix:
-            basename += "_" + suffix
+            basename += f"_{suffix}"
             return basename
 
         return os.path.join(outpath, f"{basename}.{ext}")
@@ -485,7 +481,7 @@ class Render(bpy.types.Operator):
             # temporaryily change the Render Result image name and update the UI as simple progress indication
             img.name = f"Render Seed {i} ({i + 1}/{count})"
             bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
-            img.name = f"Render Result"
+            img.name = "Render Result"
 
         return seedpaths, matte_path
 

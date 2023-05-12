@@ -36,7 +36,7 @@ def compensate_children(obj, oldmx, newmx):
 
     # the delta matrix, aka the old mx expressed in the new one's local space
     deltamx = newmx.inverted_safe() @ oldmx
-    children = [c for c in obj.children]
+    children = list(obj.children)
 
     for c in children:
         pmx = c.matrix_parent_inverse
@@ -60,7 +60,7 @@ def add_vgroup(obj, name="", ids=[], weight=1, debug=False):
     vgroup = obj.vertex_groups.new(name=name)
 
     if debug:
-        print(" » Created new vertex group: %s" % (name))
+        print(f" » Created new vertex group: {name}")
 
     if ids:
         vgroup.add(ids, weight, "ADD")
@@ -92,7 +92,7 @@ def set_obj_origin(obj, mx, bm=None, decalmachine=False, meshmachine=False):
     omx = obj.matrix_world.copy()
 
     # get children and compensate for the parent transform
-    children = [c for c in obj.children]
+    children = list(obj.children)
     compensate_children(obj, omx, mx)
 
     # object mx expressed in new mx's local space, this is the "difference matrix" representing the origin change
@@ -124,36 +124,27 @@ def set_obj_origin(obj, mx, bm=None, decalmachine=False, meshmachine=False):
         for stash in obj.MM.stashes:
 
             # MEShmachine 0.7 uses a delta and orphan matrix
-            if getattr(stash, 'version', False) and float('.'.join([v for v in stash.version.split('.')[:2]])) >= 0.7:
+            if (
+                getattr(stash, 'version', False)
+                and float('.'.join(list(stash.version.split('.')[:2]))) >= 0.7
+            ):
                 stashdeltamx = stash.obj.MM.stashdeltamx
 
                 # duplicate "instanced" stash objs, to prevent offsetting stashes on object's whose origin is not changed
                 # NOTE: it seems this is only required for self stashes for some reason
-                if stash.self_stash:
-                    if stash.obj.users > 2:
-                        print(f"INFO: Duplicating {stash.name}'s stashobj {stash.obj.name} as it's used by multiple stashes")
+                if stash.self_stash and stash.obj.users > 2:
+                    print(f"INFO: Duplicating {stash.name}'s stashobj {stash.obj.name} as it's used by multiple stashes")
 
-                        dup = stash.obj.copy()
-                        dup.data = stash.obj.data.copy()
-                        stash.obj = dup
+                    dup = stash.obj.copy()
+                    dup.data = stash.obj.data.copy()
+                    stash.obj = dup
 
                 stash.obj.MM.stashdeltamx = flatten_matrix(deltamx @ stashdeltamx)
                 stash.obj.MM.stashorphanmx = flatten_matrix(mx)
 
-                # for self stashes, cange the stash obj origin in the same way as it was chaged for the main object
-                # NOTE: this seems to work, it properly changes the origin of the stash object in the same way
-                # ####: however the stash is drawn in and retrieved in the wrong location, in the pre-origin change location
-                # ####: you can then align it properly, but why would it not be drawing and retrieved properly??
-
-                # if stash.self_stash:
-                    # stash.obj.matrix_world = mx
-                    # stash.obj.data.transform(deltamx)
-                    # stash.obj.data.update()
-
                 # just disable self_stashes until you get this sorted
                 stash.self_stash = False
 
-            # older versions use the stashmx and targetmx
             else:
                 # stashmx in stashtargetmx's local space, aka the stash difference matrix(which is all that's actually needed for stashes, just like for decal backups)
                 stashdeltamx = stash.obj.MM.stashtargetmx.inverted_safe() @ stash.obj.MM.stashmx

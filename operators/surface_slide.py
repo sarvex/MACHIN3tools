@@ -22,7 +22,7 @@ class SurfaceSlide(bpy.types.Operator):
         active.update_from_editmode()
 
         surface = bpy.data.objects.new(name=f"{active.name}_SURFACE", object_data=active.data.copy())
-        surface.data.name = '%s_SURFACE' % (active.data.name)
+        surface.data.name = f'{active.data.name}_SURFACE'
         surface.use_fake_user = True
         surface.matrix_world = active.matrix_world
 

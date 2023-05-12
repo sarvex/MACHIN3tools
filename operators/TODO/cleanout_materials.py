@@ -41,7 +41,7 @@ class CleanoutMaterials(bpy.types.Operator):
                 slots = obj.material_slots
                 if len(slots) > 0:
                     m3.make_active(obj, silent=True)
-                    print("%s:" % (obj.name))
+                    print(f"{obj.name}:")
 
                     # Make drawtype textured, so they will display materials or lack of them properly in the viewport, once you are in material shading
                     if self.changedrawtype:
@@ -60,12 +60,12 @@ class CleanoutMaterials(bpy.types.Operator):
                             print(m3.red("Something went wrong removing '%s's' slot '%s'.") % (obj.name, slot.name))
 
                     if didunhide:
-                        print(" > hiding '%s' again." % (obj.name))
+                        print(f" > hiding '{obj.name}' again.")
                         obj.hide = True
 
                         didunhide = False
                 else:
-                    print("'%s' has no material slots." % (obj.name))
+                    print(f"'{obj.name}' has no material slots.")
 
         # this will still leave the materials in the scene however
         # the following will remove the materials from the scene
@@ -80,7 +80,7 @@ class CleanoutMaterials(bpy.types.Operator):
             # This function is for advanced use only, misuse can crash blender since the user count is used to prevent data being removed when it is used.
 
             for material in bpy.data.materials:
-                print("Removing material: '%s'." % (material.name))
+                print(f"Removing material: '{material.name}'.")
                 material.user_clear()
                 bpy.data.materials.remove(material)
 

@@ -17,7 +17,7 @@ class CleanoutUVs(bpy.types.Operator):
                 uvs = obj.data.uv_textures
 
                 while uvs:
-                    print(" > removing UVs: %s" % (uvs[0].name))
+                    print(f" > removing UVs: {uvs[0].name}")
                     uvs.remove(uvs[0])
 
         return {'FINISHED'}

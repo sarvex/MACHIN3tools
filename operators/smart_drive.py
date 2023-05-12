@@ -66,7 +66,7 @@ class SmartDrive(bpy.types.Operator):
 
         target = var.targets[0]
         target.id = driver
-        target.transform_type = '%s_%s' % (driver_transform[:3], driver_axis)
+        target.transform_type = f'{driver_transform[:3]}_{driver_axis}'
 
         if driver_space == 'AUTO':
             target.transform_space = 'LOCAL_SPACE' if driver.parent else 'WORLD_SPACE'
@@ -147,7 +147,7 @@ class SwitchValues(bpy.types.Operator):
 
     @classmethod
     def description(cls, context, properties):
-        return 'Switch Start and End %s Values' % (properties.mode.capitalize())
+        return f'Switch Start and End {properties.mode.capitalize()} Values'
 
     def execute(self, context):
         m3 = context.scene.M3
@@ -172,7 +172,7 @@ class SetValue(bpy.types.Operator):
 
     @classmethod
     def description(cls, context, properties):
-        return 'Set %s %s Value' % (properties.mode.capitalize(), properties.value.capitalize())
+        return f'Set {properties.mode.capitalize()} {properties.value.capitalize()} Value'
 
     @classmethod
     def poll(cls, context):

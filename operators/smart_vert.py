@@ -295,13 +295,12 @@ class SmartVert(bpy.types.Operator):
             if hypercursor is None:
                 hypercursor = get_addon('HyperCursor')[0]
 
-            if self.slideoverride and hypercursor:
-                context.active_object.HC.show_geometry_gizmos = False
-
-                from HyperCursor.utils.select import get_selected_edges
-
-            else:
+            if not self.slideoverride or not hypercursor:
                 return {'CANCELLED'}
+
+            context.active_object.HC.show_geometry_gizmos = False
+
+            from HyperCursor.utils.select import get_selected_edges
 
         # init mouse
         self.mousepos = Vector((event.mouse_region_x, event.mouse_region_y))
@@ -348,8 +347,6 @@ class SmartVert(bpy.types.Operator):
                             last = history[-1]
                             self.verts = {v: {'co': v.co.copy(), 'target': last} for v in selected if v != last}
 
-                # EDGE MODE
-
                 elif tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, True, False):
 
                     # get selected edges
@@ -363,7 +360,13 @@ class SmartVert(bpy.types.Operator):
                         mouse_3d = region_2d_to_location_3d(context.region, context.region_data, self.mousepos, edge_center)
                         mouse_3d_local = self.mx.inverted_safe() @ mouse_3d
 
-                        closest = min([(v, (v.co - mouse_3d_local).length) for v in edge.verts], key=lambda x: x[1])[0]
+                        closest = min(
+                            (
+                                (v, (v.co - mouse_3d_local).length)
+                                for v in edge.verts
+                            ),
+                            key=lambda x: x[1],
+                        )[0]
 
                         self.verts[closest] = {'co': closest.co.copy(), 'target': edge.other_vert(closest)}
 
@@ -389,11 +392,14 @@ class SmartVert(bpy.types.Operator):
                     mouse_3d = region_2d_to_location_3d(context.region, context.region_data, self.mousepos, edge_center)
                     mouse_3d_local = self.mx.inverted_safe() @ mouse_3d
 
-                    closest = min([(v, (v.co - mouse_3d_local).length) for v in edge.verts], key=lambda x: x[1])[0]
+                    closest = min(
+                        ((v, (v.co - mouse_3d_local).length) for v in edge.verts),
+                        key=lambda x: x[1],
+                    )[0]
 
                     self.verts[closest] = {'co': closest.co.copy(), 'target': edge.other_vert(closest)}
 
-                    # printd(self.verts)
+                                # printd(self.verts)
 
 
             # check if the conditions are met to flatten the end face next to the vert that is slid
@@ -406,7 +412,11 @@ class SmartVert(bpy.types.Operator):
                 # get planar edges and end face
                 vert = next(iter(self.verts))
 
-                planar_edges = [e for e in vert.link_edges if not e.other_vert(vert) == self.verts[vert]['target']]
+                planar_edges = [
+                    e
+                    for e in vert.link_edges
+                    if e.other_vert(vert) != self.verts[vert]['target']
+                ]
                 # print("planar edges:", [e.index for e in planar_edges])
 
                 if len(planar_edges) == 2:
@@ -421,7 +431,7 @@ class SmartVert(bpy.types.Operator):
                             self.can_flatten = True
 
                             # get the 3 verts used to establigh the face normal
-                            tri_verts = set(v for e in planar_edges for v in e.verts)
+                            tri_verts = {v for e in planar_edges for v in e.verts}
                             self.flatten_dict = {'tri_verts': list(tri_verts),
                                                  'other_verts': {}}
 
@@ -429,13 +439,15 @@ class SmartVert(bpy.types.Operator):
                             other_verts = [v for v in end_face.verts if v not in tri_verts]
 
                             for v in other_verts:
-                                slide_edges = [e for e in v.link_edges if e not in end_face.edges]
-
-                                if slide_edges:
+                                if slide_edges := [
+                                    e
+                                    for e in v.link_edges
+                                    if e not in end_face.edges
+                                ]:
                                     line = [slide_edges[0].verts[0].co.copy(), slide_edges[0].verts[1].co.copy()]
                                     self.flatten_dict['other_verts'][v] = {'co': v.co.copy(),
                                                                            'line': line}
-                            # printd(self.flatten_dict)
+                                                # printd(self.flatten_dict)
 
 
             # get average target and slid vert locations in world space
@@ -485,7 +497,6 @@ class SmartVert(bpy.types.Operator):
 
             return {'CANCELLED'}
 
-        # MERGE and CONNECT
         else:
             self.vertbevel = False
             self.mousemerge = False

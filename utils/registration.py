@@ -31,10 +31,10 @@ def get_addon(addon, debug=False):
         name = mod.bl_info["name"]
         version = mod.bl_info.get("version", None)
         foldername = mod.__name__
-        path = mod.__file__
         enabled = addon_utils.check(foldername)[1]
 
         if name == addon:
+            path = mod.__file__
             if debug:
                 print(name)
                 print("  enabled:", enabled)
@@ -48,20 +48,29 @@ def get_addon(addon, debug=False):
 
 
 def get_addon_operator_idnames(addon):
-    if addon in ['MACHIN3tools', 'DECALmachine', 'MESHmachine', 'HyperCursor', 'PUNCHit']:
-        if addon in ['DECALmachine', 'MESHmachine', 'HyperCursor', 'PUNCHit']:
-            if not get_addon(addon)[0]:
-                return []
+    if addon not in [
+        'MACHIN3tools',
+        'DECALmachine',
+        'MESHmachine',
+        'HyperCursor',
+        'PUNCHit',
+    ]:
+        return
+    if (
+        addon in ['DECALmachine', 'MESHmachine', 'HyperCursor', 'PUNCHit']
+        and not get_addon(addon)[0]
+    ):
+        return []
 
-        classes = import_module(f'{addon}.registration').classes
+    classes = import_module(f'{addon}.registration').classes
 
-        idnames = []
+    idnames = []
 
-        for imps in classes.values():
-            op_imps = [imp for imp in imps if 'operators' in imp[0] or 'macros' in imp[0]]
-            idnames.extend([f"machin3.{idname}" for _, cls in op_imps for _, idname in cls])
+    for imps in classes.values():
+        op_imps = [imp for imp in imps if 'operators' in imp[0] or 'macros' in imp[0]]
+        idnames.extend([f"machin3.{idname}" for _, cls in op_imps for _, idname in cls])
 
-        return idnames
+    return idnames
 
 
 def get_addon_prefs(addon):
@@ -76,8 +85,8 @@ def register_classes(classlists, debug=False):
 
     for classlist in classlists:
         for fr, imps in classlist:
-            impline = "from ..%s import %s" % (fr, ", ".join([i[0] for i in imps]))
-            classline = "classes.extend([%s])" % (", ".join([i[0] for i in imps]))
+            impline = f'from ..{fr} import {", ".join([i[0] for i in imps])}'
+            classline = f'classes.extend([{", ".join([i[0] for i in imps])}])'
 
             exec(impline)
             exec(classline)
@@ -110,11 +119,9 @@ def get_classes(classlist):
 
         for imp in imps:
             idname = imp[1]
-            rna_name = "MACHIN3_%s_%s" % (type, idname)
+            rna_name = f"MACHIN3_{type}_{idname}"
 
-            c = getattr(bpy.types, rna_name, False)
-
-            if c:
+            if c := getattr(bpy.types, rna_name, False):
                 classes.append(c)
 
     return classes
@@ -124,21 +131,20 @@ def get_classes(classlist):
 
 def register_keymaps(keylists):
     wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
     # kc = wm.keyconfigs.user
 
     keymaps = []
 
-    if kc:
+    if kc := wm.keyconfigs.addon:
         for keylist in keylists:
             for item in keylist:
                 keymap = item.get("keymap")
                 space_type = item.get("space_type", "EMPTY")
 
                 if keymap:
-                    km = kc.keymaps.new(name=keymap, space_type=space_type)
-
-                    if km:
+                    if km := kc.keymaps.new(
+                        name=keymap, space_type=space_type
+                    ):
                         idname = item.get("idname")
                         type = item.get("type")
                         value = item.get("value")
@@ -148,12 +154,15 @@ def register_keymaps(keylists):
                         alt = item.get("alt", False)
 
 
-                        kmi = km.keymap_items.new(idname, type, value, shift=shift, ctrl=ctrl, alt=alt)
-
-                        if kmi:
-                            properties = item.get("properties")
-
-                            if properties:
+                        if kmi := km.keymap_items.new(
+                            idname,
+                            type,
+                            value,
+                            shift=shift,
+                            ctrl=ctrl,
+                            alt=alt,
+                        ):
+                            if properties := item.get("properties"):
                                 for name, value in properties:
                                     setattr(kmi.properties, name, value)
 
@@ -180,20 +189,17 @@ def get_keymaps(keylist):
     keymaps = []
 
     for item in keylist:
-        keymap = item.get("keymap")
-
-        if keymap:
-            km = kc.keymaps.get(keymap)
-
-            if km:
+        if keymap := item.get("keymap"):
+            if km := kc.keymaps.get(keymap):
                 idname = item.get("idname")
 
                 for kmi in km.keymap_items:
                     if kmi.idname == idname:
-                        properties = item.get("properties")
-
-                        if properties:
-                            if all([getattr(kmi.properties, name, None) == value for name, value in properties]):
+                        if properties := item.get("properties"):
+                            if all(
+                                getattr(kmi.properties, name, None) == value
+                                for name, value in properties
+                            ):
                                 keymaps.append((km, kmi))
 
                         else:
@@ -253,7 +259,7 @@ def activate(self, register, tool):
     # REGISTER
 
     if register:
-        classlist, keylist, _ = eval("get_%s()" % (tool))
+        classlist, keylist, _ = eval(f"get_{tool}()")
 
 
         # CLASSES
@@ -282,21 +288,14 @@ def activate(self, register, tool):
                 startup_keymaps.append(k)
 
         if classes:
-            print("Registered MACHIN3tools' %s" % (name))
+            print(f"Registered MACHIN3tools' {name}")
 
         classlist.clear()
         keylist.clear()
 
 
-    # UN-REGISTER
-
     else:
-        # KEYMAPS
-
-        # not every tool has keymappings, so check for it
-        keylist = keysdict.get(tool.upper())
-
-        if keylist:
+        if keylist := keysdict.get(tool.upper()):
             keymaps = get_keymaps(keylist)
 
             # update keymaps registered in __init__.py at startup, necessary for addon unregistering
@@ -328,7 +327,7 @@ def activate(self, register, tool):
         unregister_classes(classes, debug=debug)
 
         if classes:
-            print("Unregistered MACHIN3tools' %s" % (name))
+            print(f"Unregistered MACHIN3tools' {name}")
 
 
 # GET CORE, TOOLS and PIES - CLASSES and KEYMAPS - for startup registration

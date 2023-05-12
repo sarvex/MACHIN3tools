@@ -53,11 +53,10 @@ def remove_mod(modname, objtype='MESH', context=None, object=None):
             else:
                 bpy.ops.object.modifier_remove(modifier=modname)
 
+    elif objtype == 'GPENCIL':
+        bpy.ops.object.gpencil_modifier_remove(modifier=modname)
     else:
-        if objtype == 'GPENCIL':
-            bpy.ops.object.gpencil_modifier_remove(modifier=modname)
-        else:
-            bpy.ops.object.modifier_remove(modifier=modname)
+        bpy.ops.object.modifier_remove(modifier=modname)
 
 
 def remove_triangulate(obj):
@@ -87,23 +86,15 @@ def get_mod_as_dict(mod, skip_show_expanded=False):
 
 
 def get_mods_as_dict(obj, types=[], skip_show_expanded=False):
-    mods = []
-
-    # get all mods or all mods of a type in types
-    for mod in obj.modifiers:
-        if types:
-            if mod.type in types:
-                mods.append(mod)
-
-        else:
-            mods.append(mod)
-
-    modsdict = {}
-
-    for mod in mods:
-        modsdict[mod.name] = get_mod_as_dict(mod, skip_show_expanded=skip_show_expanded)
-
-    return modsdict
+    mods = [
+        mod
+        for mod in obj.modifiers
+        if types and mod.type in types or not types
+    ]
+    return {
+        mod.name: get_mod_as_dict(mod, skip_show_expanded=skip_show_expanded)
+        for mod in mods
+    }
 
 
 # APPLY

@@ -32,9 +32,9 @@ def reload_modules(name):
     utils_modules = sorted([name[:-3] for name in os.listdir(os.path.join(__path__[0], "utils")) if name.endswith('.py')])
 
     for module in utils_modules:
-        impline = "from . utils import %s" % (module)
+        impline = f"from . utils import {module}"
 
-        print("reloading %s" % (".".join([name] + ['utils'] + [module])))
+        print(f"""reloading {".".join([name] + ['utils'] + [module])}""")
 
         exec(impline)
         importlib.reload(eval(module))
@@ -58,11 +58,11 @@ def reload_modules(name):
 
     for path, module in modules:
         if path:
-            impline = "from . %s import %s" % (".".join(path), module)
+            impline = f'from . {".".join(path)} import {module}'
         else:
-            impline = "from . import %s" % (module)
+            impline = f"from . import {module}"
 
-        print("reloading %s" % (".".join([name] + path + [module])))
+        print(f'reloading {".".join([name] + path + [module])}')
 
         exec(impline)
         importlib.reload(eval(module))

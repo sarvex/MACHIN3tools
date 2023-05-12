@@ -49,7 +49,7 @@ class Thread(bpy.types.Operator):
         row.prop(self, 'h4', text='')
 
         r = row.row(align=True)
-        r.active = True if self.h4 else False
+        r.active = bool(self.h4)
         r.prop(self, 'flip', toggle=True)
 
     def execute(self, context):
@@ -59,9 +59,7 @@ class Thread(bpy.types.Operator):
         bm.normal_update()
 
         selverts = [v for v in bm.verts if v.select]
-        selfaces = [f for f in bm.faces if f.select]
-
-        if selfaces:
+        if selfaces := [f for f in bm.faces if f.select]:
             boundary = get_boundary_edges(selfaces)
             sequences = get_edges_vert_sequences(selverts, boundary, debug=False)
 

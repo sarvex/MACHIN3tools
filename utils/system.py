@@ -14,7 +14,7 @@ def abspath(path):
 
 def quotepath(path):
     if " " in path:
-        path = '"%s"' % (path)
+        path = f'"{path}"'
     return path
 
 
@@ -30,7 +30,7 @@ def add_path_to_recent_files(path):
             f.seek(0, 0)
             f.write(path.rstrip('\r\n') + '\n' + content)
 
-    except (IOError, OSError, FileNotFoundError):
+    except (IOError, OSError):
         pass
 
 
@@ -44,7 +44,7 @@ def open_folder(path):
         subprocess.Popen(["open", path])
     else:
         # subprocess.Popen(["xdg-open", path])
-        os.system('xdg-open "%s" %s &' % (path, "> /dev/null 2> /dev/null"))  # > sends stdout,  2> sends stderr
+        os.system(f'xdg-open "{path}" > /dev/null 2> /dev/null &')
 
 
 def makedir(pathstring):
@@ -64,19 +64,15 @@ def get_incremented_paths(currentblend):
 
     filenameRegex = re.compile(r"(.+)\.blend\d*$")
 
-    mo = filenameRegex.match(filename)
-
-    if mo:
-        name = mo.group(1)
+    if mo := filenameRegex.match(filename):
+        name = mo[1]
         numberendRegex = re.compile(r"(.*?)(\d+)$")
 
-        mo = numberendRegex.match(name)
-
-        if mo:
-            basename = mo.group(1)
-            numberstr = mo.group(2)
+        if mo := numberendRegex.match(name):
+            basename = mo[1]
+            numberstr = mo[2]
         else:
-            basename = name + "_"
+            basename = f"{name}_"
             numberstr = "000"
 
         number = int(numberstr)
@@ -86,4 +82,4 @@ def get_incremented_paths(currentblend):
 
         incrname = basename + incrstr + ".blend"
 
-        return os.path.join(path, incrname), os.path.join(path, name + '_01.blend')
+        return os.path.join(path, incrname), os.path.join(path, f'{name}_01.blend')

@@ -257,11 +257,11 @@ def object_context_menu(self, context):
                 row.scale_y = 0.3
                 row.label(text="")
 
-                if addable and (active_group or active_child):
-                    layout.operator("machin3.add_to_group", text="Add to Group")
+            if addable and (active_group or active_child):
+                layout.operator("machin3.add_to_group", text="Add to Group")
 
-                if removable:
-                    layout.operator("machin3.remove_from_group", text="Remove from Group")
+            if removable:
+                layout.operator("machin3.remove_from_group", text="Remove from Group")
 
             if group_empties or groupable or (addable and (active_group or active_child)) or removable or groupifyable:
                 layout.separator()
@@ -289,13 +289,13 @@ def add_object_buttons(self, context):
 def extrude_menu(self, context):
     is_cursor_spin = getattr(bpy.types, 'MACHIN3_OT_cursor_spin', False)
     is_punch_it = getattr(bpy.types, 'MACHIN3_OT_punch_it_a_little', False)
-    is_punchit = getattr(bpy.types, 'MACHIN3_OT_punchit', False)
-
     if any([is_cursor_spin, is_punch_it]):
         self.layout.separator()
 
         if is_cursor_spin:
             self.layout.operator("machin3.cursor_spin", text="Cursor Spin")
+
+        is_punchit = getattr(bpy.types, 'MACHIN3_OT_punchit', False)
 
         if is_punch_it and not is_punchit:
             self.layout.operator("machin3.punch_it_a_little", text="Punch It (a little)", icon_value=get_icon('fist'))
@@ -306,26 +306,29 @@ def extrude_menu(self, context):
 def material_pick_button(self, context):
     workspaces = [ws.strip() for ws in get_prefs().matpick_workspace_names.split(',')]
 
-    if any([s in context.workspace.name for s in workspaces]):
-        if getattr(bpy.types, 'MACHIN3_OT_material_picker', False):
-            row = self.layout.row()
-            row.scale_x = 1.25
-            row.scale_y = 1.1
-            # row.separator_spacer()
-            row.separator(factor=get_prefs().matpick_spacing_obj if context.mode == 'OBJECT' else get_prefs().matpick_spacing_edit)
-            row.operator("machin3.material_picker", text="", icon="EYEDROPPER")
+    if any(s in context.workspace.name for s in workspaces) and getattr(
+        bpy.types, 'MACHIN3_OT_material_picker', False
+    ):
+        row = self.layout.row()
+        row.scale_x = 1.25
+        row.scale_y = 1.1
+        # row.separator_spacer()
+        row.separator(factor=get_prefs().matpick_spacing_obj if context.mode == 'OBJECT' else get_prefs().matpick_spacing_edit)
+        row.operator("machin3.material_picker", text="", icon="EYEDROPPER")
 
 
 # OUTLINER GROUP BUTTONS
 
 def outliner_group_toggles(self, context):
-    if getattr(bpy.types, 'MACHIN3_OT_group', False) and get_prefs().use_group_outliner_toggles:
-
-        if get_group_polls(context)[2]:
-            m3 = context.scene.M3
-            self.layout.prop(m3, "group_select", text='', icon='GROUP_VERTEX')
-            self.layout.prop(m3, "group_recursive_select", text='', icon='CON_SIZELIKE')
-            self.layout.prop(m3, "group_hide", text='', icon='HIDE_ON' if m3.group_hide else 'HIDE_OFF', emboss=False)
+    if (
+        getattr(bpy.types, 'MACHIN3_OT_group', False)
+        and get_prefs().use_group_outliner_toggles
+        and get_group_polls(context)[2]
+    ):
+        m3 = context.scene.M3
+        self.layout.prop(m3, "group_select", text='', icon='GROUP_VERTEX')
+        self.layout.prop(m3, "group_recursive_select", text='', icon='CON_SIZELIKE')
+        self.layout.prop(m3, "group_hide", text='', icon='HIDE_ON' if m3.group_hide else 'HIDE_OFF', emboss=False)
 
 
 # GROUP ORIGIN ADJUSTMENT
@@ -353,11 +356,11 @@ def render_menu(self, context):
 
         layout.separator()
 
-        op = layout.operator("machin3.render", text=f"Quick Render")
+        op = layout.operator("machin3.render", text="Quick Render")
         op.seed = False
         op.final = False
 
-        op = layout.operator("machin3.render", text=f"Final Render")
+        op = layout.operator("machin3.render", text="Final Render")
         op.seed = False
         op.final = True
 
@@ -366,14 +369,14 @@ def render_menu(self, context):
         row.label(text='')
 
         row = layout.row()
-        row.active = True if context.scene.camera else False
+        row.active = bool(context.scene.camera)
         row.prop(get_prefs(), 'render_seed_count', text="Seed Count")
 
-        op = layout.operator("machin3.render", text=f"Seed Render")
+        op = layout.operator("machin3.render", text="Seed Render")
         op.seed = True
         op.final = False
 
-        op = layout.operator("machin3.render", text=f"Final Seed Render")
+        op = layout.operator("machin3.render", text="Final Seed Render")
         op.seed = True
         op.final = True
 
@@ -386,26 +389,26 @@ def render_buttons(self, context):
 
         row = column.row(align=True)
         row.scale_y = 1.2
-        op = row.operator("machin3.render", text=f"Quick Render")
+        op = row.operator("machin3.render", text="Quick Render")
         op.seed = False
         op.final = False
 
-        op = row.operator("machin3.render", text=f"Final Render")
+        op = row.operator("machin3.render", text="Final Render")
         op.seed = False
         op.final = True
 
         column.separator()
 
         row = column.row(align=True)
-        row.active = True if context.scene.camera else False
+        row.active = bool(context.scene.camera)
         row.prop(get_prefs(), 'render_seed_count', text="Seed Render Count")
 
         row = column.row(align=True)
         row.scale_y = 1.2
-        op = row.operator("machin3.render", text=f"Seed Render")
+        op = row.operator("machin3.render", text="Seed Render")
         op.seed = True
         op.final = False
 
-        op = row.operator("machin3.render", text=f"Final Seed Render")
+        op = row.operator("machin3.render", text="Final Seed Render")
         op.seed = True
         op.final = True

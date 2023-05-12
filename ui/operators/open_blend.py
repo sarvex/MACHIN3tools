@@ -20,8 +20,7 @@ class OpenLibraryBlend(bpy.types.Operator):
 
         # it it loeaded successfullly reload the library to update any changes that were done
         if blender and self.library:
-            lib = bpy.data.libraries.get(self.library)
-            if lib:
+            if lib := bpy.data.libraries.get(self.library):
                 lib.reload()
 
         return {'FINISHED'}

@@ -137,7 +137,6 @@ class CursorSpin(bpy.types.Operator):
         r.prop(self, 'offset_reset', text='', icon='LOOP_BACK', toggle=True)
 
     def execute(self, context):
-        debug = False
         # debug = True
 
         if self.angle:
@@ -156,16 +155,13 @@ class CursorSpin(bpy.types.Operator):
             # but also attempt to get center from cursor + offset however, depends on whether there is a valid selection
             # blender's spin up doesn't poll for a selection, it just runs without doing anything, so do the same here
             bm = bmesh.from_edit_mesh(context.active_object.data)
-            verts = [v for v in bm.verts if v.select]
-
-            if verts:
+            if verts := [v for v in bm.verts if v.select]:
                 center_sel = mx @ average_locations([v.co for v in verts])
+                debug = False
                 if debug:
                     draw_point(center_sel, modal=False)
 
-                i = intersect_point_line(center_sel, center, center + axis)
-
-                if i:
+                if i := intersect_point_line(center_sel, center, center + axis):
                     closest_on_axis = i[0]
                     if debug:
                         draw_point(closest_on_axis, color=yellow, modal=False)

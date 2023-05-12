@@ -81,11 +81,11 @@ class CreateAssemblyAsset(bpy.types.Operator):
             column.label(text="DECALmachine and MESHmachine" if decalmachine and meshmachine else "DECALmachine" if decalmachine else "MESHmachine")
             row = column.row(align=True)
 
-            if decalmachine:
-                row.prop(self, 'remove_decal_backups', toggle=True)
+        if decalmachine:
+            row.prop(self, 'remove_decal_backups', toggle=True)
 
-            if meshmachine:
-                row.prop(self, 'remove_stashes', toggle=True)
+        if meshmachine:
+            row.prop(self, 'remove_stashes', toggle=True)
 
         column.separator()
         column.label(text="Asset Object Collections")
@@ -136,15 +136,7 @@ class CreateAssemblyAsset(bpy.types.Operator):
     def execute(self, context):
         global decalmachine, meshmachine
 
-        name = self.name.strip()
-
-        # decalmachine = True
-        # self.remove_decal_backups = True
-
-        # meshmachine = True
-        # self.remove_stashes = True
-
-        if name:
+        if name := self.name.strip():
             print(f"INFO: Creation Assembly Asset: {name}")
 
             # from the selection get all the objects to create the
@@ -252,9 +244,7 @@ class CreateAssemblyAsset(bpy.types.Operator):
             print(f"WARNING: Removing {obj.name}'s {len(obj.MM.stashes)} stashes")
 
             for stash in obj.MM.stashes:
-                stashobj = stash.obj
-
-                if stashobj:
+                if stashobj := stash.obj:
                     print(" *", stash.name, stashobj.name)
                     bpy.data.meshes.remove(stashobj.data, do_unlink=True)
 
@@ -323,22 +313,20 @@ class CreateAssemblyAsset(bpy.types.Operator):
         if self.unlink_collection:
             mcol.children.unlink(acol)
 
-        else:
-            if self.hide_collection:
-                context.view_layer.layer_collection.children[acol.name].hide_viewport = True
-                instance.select_set(True)
-                context.view_layer.objects.active = instance
+        elif self.hide_collection:
+            context.view_layer.layer_collection.children[acol.name].hide_viewport = True
+            instance.select_set(True)
+            context.view_layer.objects.active = instance
 
-            elif self.hide_instance:
-                instance.hide_set(True)
+        elif self.hide_instance:
+            instance.hide_set(True)
 
         return instance
 
     def adjust_workspace(self, context):
-        asset_browser_workspace = get_prefs().preferred_assetbrowser_workspace_name
-
-        # switch to the preferred asset browser workspace, if one is defined in the addon preferences
-        if asset_browser_workspace:
+        if (
+            asset_browser_workspace := get_prefs().preferred_assetbrowser_workspace_name
+        ):
             ws = bpy.data.workspaces.get(asset_browser_workspace)
 
             if ws and ws != context.workspace:
@@ -391,10 +379,7 @@ class CreateAssemblyAsset(bpy.types.Operator):
         bpy.ops.render.opengl()
 
 
-        # fetch the render result and save it
-        thumb = bpy.data.images.get('Render Result')
-
-        if thumb:
+        if thumb := bpy.data.images.get('Render Result'):
             thumb.save_render(filepath=filepath)
 
         # resstore original settings
@@ -479,9 +464,9 @@ class AssembleInstanceCollection(bpy.types.Operator):
 
         # sweep stashes
         if meshmachine:
-            stashobjs = [obj for obj in context.scene.objects if obj.MM.isstashobj]
-
-            if stashobjs:
+            if stashobjs := [
+                obj for obj in context.scene.objects if obj.MM.isstashobj
+            ]:
                 bpy.ops.machin3.sweep_stashes()
 
         # run a purge, because somehow for linked libraries, there will still be linked datablocks here, this gets rid of them
@@ -499,14 +484,14 @@ class AssembleInstanceCollection(bpy.types.Operator):
         ####: but the duplicate op takes care of that for us
         '''
 
-        cols = [col for col in instance.users_collection]
+        cols = list(instance.users_collection)
         imx = instance.matrix_world
 
         # print()
         # print(collection.name, collection.users_dupli_group)
 
         # get the collections's children and root children
-        children = [obj for obj in collection.objects]
+        children = list(collection.objects)
         # print("children:", [obj.name for obj in children])
 
         bpy.ops.object.select_all(action='DESELECT')
@@ -533,7 +518,7 @@ class AssembleInstanceCollection(bpy.types.Operator):
                 for col in cols:
                     col.objects.unlink(obj)
 
-            children = [obj for obj in context.selected_objects]
+            children = list(context.selected_objects)
             # print("new children:", [obj.name for obj in children])
 
             for obj in children:
@@ -616,8 +601,8 @@ class CollectAssets(bpy.types.Operator):
                     dirname = os.path.dirname(path)
                     basename = os.path.basename(path).replace('.blend', '')
 
-                    jpgpath = os.path.join(dirname, basename + '.jpg')
-                    pngpath = os.path.join(dirname, basename + '.png')
+                    jpgpath = os.path.join(dirname, f'{basename}.jpg')
+                    pngpath = os.path.join(dirname, f'{basename}.png')
 
                     if os.path.exists(jpgpath):
                         print(" using existing .jpg thumbnail")
@@ -643,4 +628,4 @@ class CollectAssets(bpy.types.Operator):
             return getattr(data_to, collection)
 
         else:
-            print("The file %s does not exist" % (filepath))
+            print(f"The file {filepath} does not exist")

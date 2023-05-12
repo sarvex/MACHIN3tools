@@ -12,13 +12,7 @@ def get_selected_vert_sequences(verts, ensure_seq_len=False, debug=False):
     # if edge loops are non-cyclic, it matters at what vert you start the sorting
     noncyclicstartverts = [v for v in verts if len([e for e in v.link_edges if e.select]) == 1]
 
-    if noncyclicstartverts:
-        v = noncyclicstartverts[0]
-
-    # in cyclic edge loops, any vert works
-    else:
-        v = verts[0]
-
+    v = noncyclicstartverts[0] if noncyclicstartverts else verts[0]
     seq = []
 
     while verts:
@@ -34,37 +28,28 @@ def get_selected_vert_sequences(verts, ensure_seq_len=False, debug=False):
         if v in noncyclicstartverts:
             noncyclicstartverts.remove(v)
 
-        nextv = [e.other_vert(v) for e in v.link_edges if e.select and e.other_vert(v) not in seq]
-
-        # next vert in sequence
-        if nextv:
+        if nextv := [
+            e.other_vert(v)
+            for e in v.link_edges
+            if e.select and e.other_vert(v) not in seq
+        ]:
             v = nextv[0]
 
-        # finished a sequence
         else:
             # determine cyclicity
-            cyclic = True if len([e for e in v.link_edges if e.select]) == 2 else False
+            cyclic = len([e for e in v.link_edges if e.select]) == 2
 
             # store sequence and cyclicity
             sequences.append((seq, cyclic))
 
             # start a new sequence, if there are still verts left
             if verts:
-                if noncyclicstartverts:
-                    v = noncyclicstartverts[0]
-                else:
-                    v = verts[0]
-
+                v = noncyclicstartverts[0] if noncyclicstartverts else verts[0]
                 seq = []
 
     # again for EPanel, make sure sequences are longer than one vert
     if ensure_seq_len:
-        seqs = []
-
-        for seq, cyclic in sequences:
-            if len(seq) > 1:
-                seqs.append((seq, cyclic))
-
+        seqs = [(seq, cyclic) for seq, cyclic in sequences if len(seq) > 1]
         sequences = seqs
 
     if debug:
@@ -84,13 +69,7 @@ def get_edges_vert_sequences(verts, edges, debug=False):
     # if edge loops are non-cyclic, it matters at what vert you start the sorting
     noncyclicstartverts = [v for v in verts if len([e for e in v.link_edges if e in edges]) == 1]
 
-    if noncyclicstartverts:
-        v = noncyclicstartverts[0]
-
-    # in cyclic edge loops, any vert works
-    else:
-        v = verts[0]
-
+    v = noncyclicstartverts[0] if noncyclicstartverts else verts[0]
     seq = []
 
     while verts:
@@ -100,27 +79,23 @@ def get_edges_vert_sequences(verts, edges, debug=False):
         if v in noncyclicstartverts:
             noncyclicstartverts.remove(v)
 
-        nextv = [e.other_vert(v) for e in v.link_edges if e in edges and e.other_vert(v) not in seq]
-
-        # next vert in sequence
-        if nextv:
+        if nextv := [
+            e.other_vert(v)
+            for e in v.link_edges
+            if e in edges and e.other_vert(v) not in seq
+        ]:
             v = nextv[0]
 
-        # finished a sequence
         else:
             # determine cyclicity
-            cyclic = True if len([e for e in v.link_edges if e in edges]) == 2 else False
+            cyclic = len([e for e in v.link_edges if e in edges]) == 2
 
             # store sequence and cyclicity
             sequences.append((seq, cyclic))
 
             # start a new sequence, if there are still verts left
             if verts:
-                if noncyclicstartverts:
-                    v = noncyclicstartverts[0]
-                else:
-                    v = verts[0]
-
+                v = noncyclicstartverts[0] if noncyclicstartverts else verts[0]
                 seq = []
 
     if debug:
@@ -152,9 +127,9 @@ def get_selection_islands(faces, debug=False):
 
         while foundmore:
             for e in foundmore[0].edges:
-                # get unseen selected border faces
-                bf = [f for f in e.link_faces if f.select and f not in island]
-                if bf:
+                if bf := [
+                    f for f in e.link_faces if f.select and f not in island
+                ]:
                     island.append(bf[0])
                     foundmore.append(bf[0])
 

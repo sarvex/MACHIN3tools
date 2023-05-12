@@ -25,7 +25,7 @@ class ShrinkwrapGreasePencil(bpy.types.Operator):
         frame = layer.active_frame
 
         for stroke in frame.strokes:
-            for idx, point in enumerate(stroke.points):
+            for point in stroke.points:
                 closest, _, co, no, _, _ = get_closest(mx @ point.co, depsgraph=dg, debug=False)
 
                 if closest:

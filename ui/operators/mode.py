@@ -114,21 +114,20 @@ class ImageMode(bpy.types.Operator):
         view = context.space_data
         active = context.active_object
 
-        toolsettings = context.scene.tool_settings
         view.mode = self.mode
 
-        if self.mode == "UV" and active:
-            if active.mode == "OBJECT":
-                uvs = active.data.uv_layers
+        if self.mode == "UV" and active and active.mode == "OBJECT":
+            uvs = active.data.uv_layers
 
-                # create new uv layer
-                if not uvs:
-                    uvs.new()
+            # create new uv layer
+            if not uvs:
+                uvs.new()
 
-                bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.object.mode_set(mode="EDIT")
 
-                if not toolsettings.use_uv_select_sync:
-                    bpy.ops.mesh.select_all(action="SELECT")
+            toolsettings = context.scene.tool_settings
+            if not toolsettings.use_uv_select_sync:
+                bpy.ops.mesh.select_all(action="SELECT")
 
         return {'FINISHED'}
 
@@ -168,19 +167,19 @@ class SurfaceDrawMode(bpy.types.Operator):
 
         scene = context.scene
         ts = scene.tool_settings
-        mcol = context.collection
         view = context.space_data
         active = context.active_object
 
-        existing_gps = [obj for obj in active.children if obj.type == "GPENCIL"]
-
-        if existing_gps:
+        if existing_gps := [
+            obj for obj in active.children if obj.type == "GPENCIL"
+        ]:
             gp = existing_gps[0]
 
         else:
-            name = "%s_SurfaceDrawing" % (active.name)
+            name = f"{active.name}_SurfaceDrawing"
             gp = bpy.data.objects.new(name, bpy.data.grease_pencils.new(name))
 
+            mcol = context.collection
             mcol.objects.link(gp)
 
             gp.matrix_world = active.matrix_world

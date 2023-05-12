@@ -48,10 +48,6 @@ def get_last_operators(context, debug=False):
         if idname.startswith('machin3.call_'):
             continue
 
-        # show props, special modes and custom labels
-
-        # MACHIN3tools
-
         elif idname == 'machin3.set_tool_by_name':
             prop = prettify_tool_name(op.properties.get('name', ''))
 
@@ -92,7 +88,7 @@ def get_last_operators(context, debug=False):
                     prop = mode + mergetype
                 else:
                     pathtype = getattr(op, 'pathtype', False)
-                    prop = mode + 'Pathsby' + pathtype.title()
+                    prop = f'{mode}Pathsby{pathtype.title()}'
 
 
         elif idname == 'machin3.smart_edge':
@@ -127,11 +123,7 @@ def get_last_operators(context, debug=False):
             elif getattr(op, 'is_select'):
                 mode = getattr(op, 'select_mode')
 
-                if getattr(op, 'is_region'):
-                    prop = 'SelectRegion'
-                else:
-                    prop = f'Select{mode.title()}'
-
+                prop = 'SelectRegion' if getattr(op, 'is_region') else f'Select{mode.title()}'
             elif getattr(op, 'is_loop_cut'):
                 prop = 'LoopCut'
 
@@ -213,14 +205,10 @@ def get_last_operators(context, debug=False):
             label = 'Purge Orphans Recursively' if recursive else 'Purge Orphans'
 
 
-        # DECALmachine
-
         elif idname == 'machin3.decal_library_visibility_preset':
             label = f"{label} {op.properties.get('name')}"
             prop = 'Store' if op.properties.get('store') else 'Recall'
 
-
-        # MESHmachine
 
         elif idname == 'machin3.select':
             if getattr(op, 'vgroup', False):
@@ -239,10 +227,8 @@ def get_last_operators(context, debug=False):
                 prop = 'Remove'
 
             if getattr(op, 'partial'):
-                label = 'Selected ' + label
+                label = f'Selected {label}'
 
-
-        # HyperCursor
 
         elif idname == 'machin3.add_object_at_cursor':
             is_pipe_init = getattr(op, 'is_pipe_init', False)
@@ -264,22 +250,15 @@ def get_last_operators(context, debug=False):
             if is_macro:
                 geo = 'Mesh Selection' if context.mode == 'EDIT_MESH' else 'Object Selection'
 
-                if is_duplicate:
-                    # prop = f"Duplicate {mode} {geo}"
-                    label = f"Duplicate {mode} {geo}"
-
-                else:
-                    # prop = f"{mode} {geo}"
-                    label = f"{mode} {geo}"
-
+                label = f"Duplicate {mode} {geo}" if is_duplicate else f"{mode} {geo}"
             elif is_array:
                 # prop = f"{mode} Array"
                 # label = f"{mode} Array"
 
                 if mode == 'Translate':
-                    label = f"Linear Array"
+                    label = "Linear Array"
                 elif mode == 'Rotate':
-                    label = f"Radial Array"
+                    label = "Radial Array"
 
             else:
                 # prop = f"{mode}"
@@ -288,11 +267,7 @@ def get_last_operators(context, debug=False):
         elif idname == 'machin3.pick_hyper_bevel':
             mirror = getattr(op, 'mirror')
 
-            if mirror:
-                label = 'Mirror Hyper Bevel'
-            else:
-                label = 'Remove Hyper Bevel'
-
+            label = 'Mirror Hyper Bevel' if mirror else 'Remove Hyper Bevel'
         elif idname == 'machin3.point_cursor':
             align_y_axis = getattr(op, 'align_y_axis')
             label = 'Point Cursor'

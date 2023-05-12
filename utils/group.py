@@ -61,7 +61,7 @@ def clean_up_groups(context):
                 obj.M3.is_group_object = False
                 print(f"INFO: {obj.name} is no longer a group object, because it doesn't have any parent")
 
-        elif not obj.M3.is_group_object and obj.parent and obj.parent.M3.is_group_empty:
+        elif obj.parent and obj.parent.M3.is_group_empty:
             obj.M3.is_group_object = True
             print(f"INFO: {obj.name} is now a group object, because it was manually parented to {obj.parent.name}")
 
@@ -92,13 +92,9 @@ def get_group_collection(context, sel):
     otherwise return the master collection
     '''
 
-    collections = set(col for obj in sel for col in obj.users_collection)
+    collections = {col for obj in sel for col in obj.users_collection}
 
-    if len(collections) == 1:
-        return collections.pop()
-
-    else:
-        return context.scene.collection
+    return collections.pop() if len(collections) == 1 else context.scene.collection
 
 
 def get_group_matrix(context, objects, location_type='AVERAGE', rotation_type='WORLD'):
@@ -108,16 +104,19 @@ def get_group_matrix(context, objects, location_type='AVERAGE', rotation_type='W
 
     # LOCATION
 
-    if location_type == 'AVERAGE':
+    if (
+        location_type != 'AVERAGE'
+        and location_type == 'ACTIVE'
+        and context.active_object
+    ):
+        location = context.active_object.matrix_world.to_translation()
+
+    elif (
+        location_type != 'AVERAGE'
+        and location_type == 'ACTIVE'
+        or location_type == 'AVERAGE'
+    ):
         location = average_locations([obj.matrix_world.to_translation() for obj in objects])
-
-    elif location_type == 'ACTIVE':
-        if context.active_object:
-            location = context.active_object.matrix_world.to_translation()
-
-        # fallback to average if no active object is present
-        else:
-            location = average_locations([obj.matrix_world.to_translation() for obj in objects])
 
     elif location_type == 'CURSOR':
         location = context.scene.cursor.location
@@ -128,16 +127,19 @@ def get_group_matrix(context, objects, location_type='AVERAGE', rotation_type='W
 
     # ROTATION
 
-    if rotation_type == 'AVERAGE':
+    if (
+        rotation_type != 'AVERAGE'
+        and rotation_type == 'ACTIVE'
+        and context.active_object
+    ):
+        rotation = context.active_object.matrix_world.to_quaternion()
+
+    elif (
+        rotation_type != 'AVERAGE'
+        and rotation_type == 'ACTIVE'
+        or rotation_type == 'AVERAGE'
+    ):
         rotation = Quaternion(average_locations([obj.matrix_world.to_quaternion().to_exponential_map() for obj in objects]))
-
-    elif rotation_type == 'ACTIVE':
-        if context.active_object:
-            rotation = context.active_object.matrix_world.to_quaternion()
-
-        # fallback to average if no active object is present
-        else:
-            rotation = Quaternion(average_locations([obj.matrix_world.to_quaternion().to_exponential_map() for obj in objects]))
 
     elif rotation_type == 'CURSOR':
         rotation = context.scene.cursor.matrix.to_quaternion()
@@ -195,9 +197,7 @@ def fade_group_sizes(context, size=None, groups=[], init=False):
             group.empty_display_size = factor * size
             group.M3.group_size = group.empty_display_size
 
-        sub_groups = [c for c in group.children if c.M3.is_group_empty]
-
-        if sub_groups:
+        if sub_groups := [c for c in group.children if c.M3.is_group_empty]:
             fade_group_sizes(context, size=group.M3.group_size, groups=sub_groups, init=False)
 
 
@@ -206,25 +206,23 @@ def fade_group_sizes(context, size=None, groups=[], init=False):
 def get_base_group_name():
     p = r.get_prefs()
 
+    c = 0
     if r.get_prefs().group_auto_name:
-        name = f"{p.group_prefix}{p.group_basename + '_001'}{p.group_suffix}"
+        name = f"{p.group_prefix}{p.group_basename}_001{p.group_suffix}"
 
-        c = 0
         while name in bpy.data.objects:
             c += 1
-            name = f"{p.group_prefix}{p.group_basename + '_' + str(c).zfill(3)}{p.group_suffix}"
-
-        return name
+            name = f"{p.group_prefix}{p.group_basename}_{str(c).zfill(3)}{p.group_suffix}"
 
     else:
         name = f"{p.group_basename}_001"
 
-        c = 0
         while name in bpy.data.objects:
             c += 1
-            name = f"{p.group_basename + '_' + str(c).zfill(3)}"
+            name = f"{f'{p.group_basename}_{str(c).zfill(3)}'}"
 
-        return name
+
+    return name
 
 
 def update_group_name(group):
@@ -247,6 +245,6 @@ def update_group_name(group):
     c = 0
     while newname in bpy.data.objects:
         c += 1
-        newname = f"{p.group_prefix}{name + '_' + str(c).zfill(3)}{p.group_suffix}"
+        newname = f"{p.group_prefix}{name}_{str(c).zfill(3)}{p.group_suffix}"
 
     group.name = newname

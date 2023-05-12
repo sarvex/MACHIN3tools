@@ -58,7 +58,19 @@ class Focus(bpy.types.Operator):
 
         mode = context.mode
 
-        if mode == 'OBJECT':
+        if mode == 'EDIT_MESH':
+            bm = bmesh.from_edit_mesh(context.active_object.data)
+            bm.normal_update()
+
+            nothing_selected = not [v for v in bm.verts if v.select]
+
+            if nothing_selected:
+                for v in bm.verts:
+                    v.select_set(True)
+
+                bm.select_flush(True)
+
+        elif mode == 'OBJECT':
             sel = context.selected_objects
 
             if not sel:
@@ -70,18 +82,6 @@ class Focus(bpy.types.Operator):
 
                 for mod in mirrors:
                     mod.show_viewport = False
-
-        elif mode == 'EDIT_MESH':
-            bm = bmesh.from_edit_mesh(context.active_object.data)
-            bm.normal_update()
-
-            nothing_selected = not [v for v in bm.verts if v.select]
-
-            if nothing_selected:
-                for v in bm.verts:
-                    v.select_set(True)
-
-                bm.select_flush(True)
 
         bpy.ops.view3d.view_selected('INVOKE_DEFAULT') if get_prefs().focus_view_transition else bpy.ops.view3d.view_selected()
 
@@ -205,10 +205,6 @@ class Focus(bpy.types.Operator):
         # get lights, not in the selection
         lights = [obj for obj in vis if obj.type == 'LIGHT' and obj not in sel] if get_prefs().focus_lights else []
 
-        # print("\nlights")
-        # for obj in lights:
-            # print("", obj.name)
-
         # blender native local view
         if self.levels == "SINGLE":
             if self.unmirror:
@@ -219,11 +215,8 @@ class Focus(bpy.types.Operator):
                     mirrored = [(obj, mod) for obj in sel for mod in obj.modifiers if mod.type == "MIRROR"]
 
                 for obj, mod in mirrored:
-                    mod.show_viewport = True if view.local_view else False
+                    mod.show_viewport = bool(view.local_view)
 
-
-            # if not view.local_view:
-                # self.show_tool_props = True
 
             # when focus is initiated, the only way to not hide the lights, is by temporarily making them part of the selection
             if lights:
@@ -237,7 +230,6 @@ class Focus(bpy.types.Operator):
                     obj.select_set(False)
 
 
-        # multi level local view
         else:
             history = context.scene.M3.focus_history
 
@@ -245,10 +237,9 @@ class Focus(bpy.types.Operator):
             if view.local_view:
 
                 # go deeper
-                if context.selected_objects and not vis == sel:
+                if context.selected_objects and vis != sel:
                     focus(context, view, sel, history, invert=self.invert, lights=lights)
 
-                # go higher
                 else:
                     if history:
                         unfocus(context, view, history)
@@ -257,7 +248,6 @@ class Focus(bpy.types.Operator):
                     else:
                         bpy.ops.view3d.localview(frame_selected=False)
 
-            # initialize local view
             elif context.selected_objects:
 
                 # if you are not in local view, and yet there is a history, clear it

@@ -14,22 +14,25 @@ def get_catalogs_from_asset_libraries(context, debug=False):
     all_catalogs = []
 
     for lib in asset_libraries:
-        name = lib.name
         path = lib.path
 
         cat_path = os.path.join(path, 'blender_assets.cats.txt')
 
         if os.path.exists(cat_path):
             if debug:
+                name = lib.name
                 print(name, cat_path)
 
             with open(cat_path) as f:
                 lines = f.readlines()
 
-            for line in lines:
-                if line != '\n' and not any([line.startswith(skip) for skip in ['#', 'VERSION']]) and len(line.split(':')) == 3:
-                    all_catalogs.append(line[:-1])
-
+            all_catalogs.extend(
+                line[:-1]
+                for line in lines
+                if line != '\n'
+                and not any(line.startswith(skip) for skip in ['#', 'VERSION'])
+                and len(line.split(':')) == 3
+            )
     catalogs = {}
 
     for cat in all_catalogs:
@@ -50,9 +53,6 @@ def update_asset_catalogs(self, context):
 
     items = [('NONE', 'None', '')]
 
-    for catalog in self.catalogs:
-        # print(catalog)
-        items.append((catalog, catalog, ""))
-
+    items.extend((catalog, catalog, "") for catalog in self.catalogs)
     default = get_prefs().preferred_default_catalog if get_prefs().preferred_default_catalog in self.catalogs else 'NONE'
     bpy.types.WindowManager.M3_asset_catalogs = bpy.props.EnumProperty(name="Asset Categories", items=items, default=default)

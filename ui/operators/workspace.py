@@ -26,20 +26,18 @@ class SwitchWorkspace(bpy.types.Operator):
 
         # if the chosen workspace is already active, select the alternative one, if present and sync the shading
         if ws and context.window.workspace == ws:
-            ws = bpy.data.workspaces.get('%s.alt' % self.name)
+            ws = bpy.data.workspaces.get(f'{self.name}.alt')
 
             if ws:
                 bpy.context.window.workspace = ws
                 if shading:
                     self.set_shading_and_overlay(ws, shading, overlay)
 
-        # switch back to original(non-alt workspace) and sync shading
-        elif ws and ws.name + ".alt" == context.workspace.name:
+        elif ws and f"{ws.name}.alt" == context.workspace.name:
             bpy.context.window.workspace = ws
             if shading:
                 self.set_shading_and_overlay(ws, shading, overlay)
 
-        # otherwise just switch to the chosen one, and only sync the shading when the alt key is pressed!
         elif ws:
             bpy.context.window.workspace = ws
 
@@ -119,67 +117,56 @@ class SwitchWorkspace(bpy.types.Operator):
                             return
 
     def get_shading(self, context, workspace):
-        if context.space_data.type == 'VIEW_3D':
-            shading = context.space_data.shading
+        if context.space_data.type != 'VIEW_3D':
+            return
+        shading = context.space_data.shading
 
-            s = {}
-
-            s['shading_type'] = shading.type
-            s['shading_color_type'] = shading.color_type
-            s['shading_light'] = shading.light
-            s['studio_light'] = shading.studio_light
-            s['rotate_z'] = shading.studiolight_rotate_z
-            s['background_alpha'] = shading.studiolight_background_alpha
-            s['background_blur'] = shading.studiolight_background_blur
-            s['studiolight_intensity'] = shading.studiolight_intensity
-
-            s['use_scene_lights'] = shading.use_scene_lights
-            s['use_scene_world'] = shading.use_scene_world
-            s['use_scene_lights_render'] = shading.use_scene_lights_render
-            s['use_scene_world_render'] = shading.use_scene_world_render
-
-            s['show_cavity'] = shading.show_cavity
-            s['show_shadows'] = shading.show_shadows
-            s['cavity_type'] = shading.cavity_type
-            s['cavity_ridge_factor'] = shading.cavity_ridge_factor
-            s['cavity_valley_factor'] = shading.cavity_valley_factor
-            s['curvature_ridge_factor'] = shading.curvature_ridge_factor
-            s['curvature_valley_factor'] = shading.curvature_valley_factor
-            s['show_object_outline'] = shading.show_object_outline
-
-            s['show_xray'] = shading.show_xray
-            s['xray_alpha'] = shading.xray_alpha
-
-            s['show_backface_culling'] = shading.show_backface_culling
-
-            return s
+        return {
+            'shading_type': shading.type,
+            'shading_color_type': shading.color_type,
+            'shading_light': shading.light,
+            'studio_light': shading.studio_light,
+            'rotate_z': shading.studiolight_rotate_z,
+            'background_alpha': shading.studiolight_background_alpha,
+            'background_blur': shading.studiolight_background_blur,
+            'studiolight_intensity': shading.studiolight_intensity,
+            'use_scene_lights': shading.use_scene_lights,
+            'use_scene_world': shading.use_scene_world,
+            'use_scene_lights_render': shading.use_scene_lights_render,
+            'use_scene_world_render': shading.use_scene_world_render,
+            'show_cavity': shading.show_cavity,
+            'show_shadows': shading.show_shadows,
+            'cavity_type': shading.cavity_type,
+            'cavity_ridge_factor': shading.cavity_ridge_factor,
+            'cavity_valley_factor': shading.cavity_valley_factor,
+            'curvature_ridge_factor': shading.curvature_ridge_factor,
+            'curvature_valley_factor': shading.curvature_valley_factor,
+            'show_object_outline': shading.show_object_outline,
+            'show_xray': shading.show_xray,
+            'xray_alpha': shading.xray_alpha,
+            'show_backface_culling': shading.show_backface_culling,
+        }
 
     def get_overlay(self, context, workspace):
-        if context.space_data.type == 'VIEW_3D':
-            overlay = context.space_data.overlay
+        if context.space_data.type != 'VIEW_3D':
+            return
+        overlay = context.space_data.overlay
 
-            o = {}
-
-            o['show_overlays'] = overlay.show_overlays
-
-            o['show_wireframes'] = overlay.show_wireframes
-            o['wireframe_threshold'] = overlay.wireframe_threshold
-
-            o['show_face_orientation'] = overlay.show_face_orientation
-
-            o['show_floor'] = overlay.show_floor
-            o['show_ortho_grid'] = overlay.show_ortho_grid
-            o['show_axis_x'] = overlay.show_axis_x
-            o['show_axis_y'] = overlay.show_axis_y
-            o['show_axis_z'] = overlay.show_axis_z
-
-            o['show_relationship_lines'] = overlay.show_relationship_lines
-
-            o['show_cursor'] = overlay.show_cursor
-            o['show_object_origins'] = overlay.show_object_origins
-            o['show_object_origins_all'] = overlay.show_object_origins_all
-
-            return o
+        return {
+            'show_overlays': overlay.show_overlays,
+            'show_wireframes': overlay.show_wireframes,
+            'wireframe_threshold': overlay.wireframe_threshold,
+            'show_face_orientation': overlay.show_face_orientation,
+            'show_floor': overlay.show_floor,
+            'show_ortho_grid': overlay.show_ortho_grid,
+            'show_axis_x': overlay.show_axis_x,
+            'show_axis_y': overlay.show_axis_y,
+            'show_axis_z': overlay.show_axis_z,
+            'show_relationship_lines': overlay.show_relationship_lines,
+            'show_cursor': overlay.show_cursor,
+            'show_object_origins': overlay.show_object_origins,
+            'show_object_origins_all': overlay.show_object_origins_all,
+        }
 
     def set_view(self, workspace, view):
         for screen in workspace.screens:
@@ -203,23 +190,21 @@ class SwitchWorkspace(bpy.types.Operator):
                             return
 
     def get_view(self, context, workspace):
-        if context.space_data.type == 'VIEW_3D':
-            r3d = context.space_data.region_3d
+        if context.space_data.type != 'VIEW_3D':
+            return
+        r3d = context.space_data.region_3d
 
-            view = {}
+        view = {
+            'view_location': r3d.view_location,
+            'view_rotation': r3d.view_rotation,
+            'view_distance': r3d.view_distance,
+            'view_perspective': r3d.view_perspective,
+            'is_perspective': r3d.is_perspective,
+            'is_side_view': r3d.is_orthographic_side_view,
+        }
 
-            # note, you could get/set the view_matrix, but matrix even with view_distance won't bring over the cameras orbit/focus point
-            view['view_location'] = r3d.view_location
-            view['view_rotation'] = r3d.view_rotation
-            view['view_distance'] = r3d.view_distance
-
-            view['view_perspective'] = r3d.view_perspective
-
-            view['is_perspective'] = r3d.is_perspective
-            view['is_side_view'] = r3d.is_orthographic_side_view
-
-            # don't get camera views
-            return view if r3d.view_perspective != 'CAMERA' else None
+        # don't get camera views
+        return view if r3d.view_perspective != 'CAMERA' else None
 
     def has_asset_browser(self, workspace):
         '''
@@ -237,17 +222,8 @@ class SwitchWorkspace(bpy.types.Operator):
                 if area.type == 'VIEW_3D' and not space_data:
                     space_data = area.spaces[0]
 
-                if area.type == 'FILE_BROWSER':
-                    # print("  ui_type", area.ui_type)
-
-                    if area.ui_type == 'ASSETS':
-                        has_asset_browser = True
-
-                    # for space in area.spaces:
-                        # print("  SPACE", space, space.type)
-
-                        # if space.type == 'FILE_BROWSER':
-                            # print("   browse_mode", space.browse_mode)
+                if area.type == 'FILE_BROWSER' and area.ui_type == 'ASSETS':
+                    has_asset_browser = True
 
         if has_asset_browser:
             return space_data

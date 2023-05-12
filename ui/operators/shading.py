@@ -30,13 +30,12 @@ class SwitchShading(bpy.types.Operator):
     @classmethod
     def description(cls, context, properties):
         shading = context.space_data.shading
-        overlay = context.space_data.overlay
         shading_type = properties.shading_type
 
-        if shading.type == shading_type:
-            return f"{'Disable' if overlay.show_overlays else 'Enable'} Overlays for {shading_type.capitalize()} Shading"
-        else:
+        if shading.type != shading_type:
             return f"Switch to {shading_type.capitalize()} shading"
+        overlay = context.space_data.overlay
+        return f"{'Disable' if overlay.show_overlays else 'Enable'} Overlays for {shading_type.capitalize()} Shading"
 
     def execute(self, context):
         global show_overlays
@@ -115,9 +114,7 @@ class SwitchShading(bpy.types.Operator):
         else:
 
             for obj, name in render_visibility:
-                obj = bpy.data.objects.get(name)
-
-                if obj:
+                if obj := bpy.data.objects.get(name):
                     # print("unhiding:", name)
                     obj.hide_set(False)
                 else:
@@ -185,8 +182,6 @@ class MatcapSwitch(bpy.types.Operator):
 
     def execute(self, context):
         view = context.space_data
-        shading = view.shading
-
         matcap1 = get_prefs().switchmatcap1
         matcap2 = get_prefs().switchmatcap2
 
@@ -198,6 +193,8 @@ class MatcapSwitch(bpy.types.Operator):
         disable_overlays = get_prefs().matcap2_disable_overlays
 
         if matcap1 and matcap2 and "NOT FOUND" not in [matcap1, matcap2]:
+            shading = view.shading
+
             if shading.studio_light == matcap1:
                 shading.studio_light = matcap2
 

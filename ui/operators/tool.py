@@ -82,9 +82,7 @@ class SetBCPreset(bpy.types.Operator):
         if not tools[boxcutter]['active']:
             bpy.ops.wm.tool_set_by_id(name=boxcutter)
 
-        options = get_tool_options(context, boxcutter, 'bc.shape_draw')
-
-        if options:
+        if options := get_tool_options(context, boxcutter, 'bc.shape_draw'):
             options.mode = self.mode
             options.shape_type = self.shape_type
 

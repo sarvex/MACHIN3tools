@@ -32,14 +32,15 @@ def get_active_tool(context):
 
 def get_tool_options(context, tool_idname, operator_idname):
     for tooldef in context.workspace.tools:
-        if tooldef and tooldef.idname == tool_idname:
-            if tooldef.mode == context.mode:
-                try:
-                    return tooldef.operator_properties(operator_idname)
-                except:
-                    return None
+        if (
+            tooldef
+            and tooldef.idname == tool_idname
+            and tooldef.mode == context.mode
+        ):
+            try:
+                return tooldef.operator_properties(operator_idname)
+            except:
+                return None
 
 def prettify_tool_name(name):
-    if name in tool_name_mapping_dict:
-        return tool_name_mapping_dict[name]
-    return name
+    return tool_name_mapping_dict[name] if name in tool_name_mapping_dict else name

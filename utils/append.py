@@ -38,10 +38,10 @@ def append_element(filepath, collection, name, link, relative):
                 getattr(data_to, collection).append(name)
 
             else:
-                print("%s does not exist in %s/%s" % (name, filepath, collection))
+                print(f"{name} does not exist in {filepath}/{collection}")
                 return
 
         return getattr(data_to, collection)[0]
 
     else:
-        print("The file %s does not exist" % (filepath))
+        print(f"The file {filepath} does not exist")

@@ -20,9 +20,9 @@ class PrepareExport(bpy.types.Operator):
     @classmethod
     def description(cls, context, properties):
         if context.scene.M3.unity_export:
-            return "Prepare and Export %s objects" % ("selected" if context.selected_objects else "visible")
+            return f'Prepare and Export {"selected" if context.selected_objects else "visible"} objects'
         else:
-            return "Prepare %s objects for Export to Unity" % ("selected" if context.selected_objects else "visible")
+            return f'Prepare {"selected" if context.selected_objects else "visible"} objects for Export to Unity'
 
     def execute(self, context):
         print("\nINFO: Preparing Unity Export")
@@ -92,7 +92,7 @@ class PrepareExport(bpy.types.Operator):
                 mirrors = [mod for mod in obj.modifiers if mod.type == 'MIRROR' and mod.show_viewport]
 
                 if mirrors:
-                    print("INFO: %sadjusting %s's MIRROR modifiers" % (depth * '  ', obj.name))
+                    print(f"INFO: {depth * '  '}adjusting {obj.name}'s MIRROR modifiers")
 
                     for mod in mirrors:
                         mod.use_axis[1:3] = mod.use_axis[2], mod.use_axis[1]
@@ -105,7 +105,7 @@ class PrepareExport(bpy.types.Operator):
             '''
 
             if triangulate and obj.type == 'MESH':
-                print("INFO: %sadding %s's TRIANGULATE modifier" % (depth * '  ', obj.name))
+                print(f"INFO: {depth * '  '}adding {obj.name}'s TRIANGULATE modifier")
                 tri = add_triangulate(obj)
 
                 for mod in [mod for mod in obj.modifiers if mod != tri]:
@@ -120,7 +120,7 @@ class PrepareExport(bpy.types.Operator):
             obj.M3.pre_unity_export_mesh = obj.data
             obj.data = obj.data.copy()
 
-            print("INFO: %sadjusting %s's MESH to compensate" % (depth * '  ', obj.name))
+            print(f"INFO: {depth * '  '}adjusting {obj.name}'s MESH to compensate")
 
             obj.data.transform(Matrix.Rotation(radians(-90), 4, 'X'))
             obj.data.update()
@@ -134,7 +134,7 @@ class PrepareExport(bpy.types.Operator):
             obj.M3.pre_unity_export_armature = obj.data
             obj.data = obj.data.copy()
 
-            print("INFO: %sadjusting %s's ARMATURE to compensate" % (depth * '  ', obj.name))
+            print(f"INFO: {depth * '  '}adjusting {obj.name}'s ARMATURE to compensate")
             obj.data.transform(Matrix.Rotation(radians(-90), 4, 'X'))
 
         def prepare_children(obj, bone_children, depth):
@@ -159,7 +159,11 @@ class PrepareExport(bpy.types.Operator):
 
                 # MODIFIERS
 
-                prepare_modifiers(obj, swivel=False if obj.parent and obj.parent in bone_children else True, depth=depth)
+                prepare_modifiers(
+                    obj,
+                    swivel=not obj.parent or obj.parent not in bone_children,
+                    depth=depth,
+                )
 
 
                 # OBJECT DATA
@@ -243,7 +247,7 @@ class RestoreExport(bpy.types.Operator):
                 mirrors = [mod for mod in obj.modifiers if mod.type == 'MIRROR' and mod.show_viewport]
 
                 if mirrors:
-                    print("INFO: %srestoring %s's mirror modifiers" % (depth * '  ', obj.name))
+                    print(f"INFO: {depth * '  '}restoring {obj.name}'s mirror modifiers")
 
                     for mod in mirrors:
                         mod.use_axis[1:3] = mod.use_axis[2], mod.use_axis[1]
@@ -251,19 +255,20 @@ class RestoreExport(bpy.types.Operator):
                         mod.use_bisect_flip_axis[1:3] = mod.use_bisect_flip_axis[2], mod.use_bisect_flip_axis[1]
 
         def remove_triangulation(obj, detriangulate):
-            if detriangulate:
-                if remove_triangulate(obj):
-                    print("INFO: %sremoved %s's TRIANGULATE modifier" % (depth * '  ', obj.name))
+            if detriangulate and remove_triangulate(obj):
+                print(f"INFO: {depth * '  '}removed {obj.name}'s TRIANGULATE modifier")
 
         def restore_mesh(obj, depth, meshes):
-            print("INFO: %srestoring %s's original pre-export MESH" % (depth * '  ', obj.name))
+            print(f"INFO: {depth * '  '}restoring {obj.name}'s original pre-export MESH")
             meshes.append(obj.data)
 
             obj.data = obj.M3.pre_unity_export_mesh
             obj.M3.pre_unity_export_mesh = None
 
         def restore_armature(obj, depth, armatures):
-            print("INFO: %srestoring %s's original pre-export ARMATURE" % (depth * '  ', obj.name))
+            print(
+                f"INFO: {depth * '  '}restoring {obj.name}'s original pre-export ARMATURE"
+            )
             armatures.append(obj.data)
 
             obj.data = obj.M3.pre_unity_export_armature
@@ -294,7 +299,11 @@ class RestoreExport(bpy.types.Operator):
 
                 # MODIFIERS
 
-                restore_modifiers(obj, swivel=False if obj.parent and obj.parent in bone_children else True, depth=depth)
+                restore_modifiers(
+                    obj,
+                    swivel=not obj.parent or obj.parent not in bone_children,
+                    depth=depth,
+                )
 
 
                 # OBJECT DATA

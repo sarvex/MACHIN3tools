@@ -44,20 +44,20 @@ class AlignUV(bpy.types.Operator):
             axiscoords = [l[uvs].uv[axis] for l in loops]
 
             # get target value depending on type
-            if type == "MIN":
-                target = min(axiscoords)
-
-            elif type == "MAX":
-                target = max(axiscoords)
-
-            elif type == "ZERO":
-                target = 0
-
-            elif type == "AVERAGE":
+            if type == "AVERAGE":
                 target = sum(axiscoords) / len(axiscoords)
 
             elif type == "CURSOR":
                 target = context.space_data.cursor_location[axis]
+
+            elif type == "MAX":
+                target = max(axiscoords)
+
+            elif type == "MIN":
+                target = min(axiscoords)
+
+            elif type == "ZERO":
+                target = 0
 
             # set the new coordinates
             for l in loops:

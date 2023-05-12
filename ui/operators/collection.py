@@ -16,10 +16,7 @@ class CreateCollection(bpy.types.Operator):
         name = self.name.strip()
         col = bpy.data.collections.get(name)
 
-        if col:
-            self.isduplicate = True
-        else:
-            self.isduplicate = False
+        self.isduplicate = bool(col)
 
 
     name: StringProperty("Collection Name", default="", update=update_name)
@@ -35,7 +32,10 @@ class CreateCollection(bpy.types.Operator):
 
         column.prop(self, "name", text="Name")
         if self.isduplicate:
-            column.label(text="Collection '%s' exists already" % (self.name.strip()), icon='ERROR')
+            column.label(
+                text=f"Collection '{self.name.strip()}' exists already",
+                icon='ERROR',
+            )
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -91,15 +91,11 @@ class AddToCollection(bpy.types.Operator):
         view = context.space_data
 
         if view.type == 'VIEW_3D' and context.selected_objects:
-
-            # if in local view, then you have to have the outliner visible, so can't be in fullscreen
-            # this is because for whatever reason we need to override the context for the move_to_collection() op to work in local_view
-            if view.local_view:
-                for area in context.screen.areas:
-                    if area.type == 'OUTLINER':
-                        return True
-            else:
+            if not view.local_view:
                 return True
+            for area in context.screen.areas:
+                if area.type == 'OUTLINER':
+                    return True
 
     def execute(self, context):
         view = context.space_data
@@ -130,15 +126,11 @@ class MoveToCollection(bpy.types.Operator):
         view = context.space_data
 
         if view.type == 'VIEW_3D' and context.selected_objects:
-
-            # if in local view, then you have to have the outlienr visible, so can't be in fullscreen
-            # this is because for whatever reason we need to override the context for the move_to_collection() op to work in local_view
-            if view.local_view:
-                for area in context.screen.areas:
-                    if area.type == 'OUTLINER':
-                        return True
-            else:
+            if not view.local_view:
                 return True
+            for area in context.screen.areas:
+                if area.type == 'OUTLINER':
+                    return True
 
     def execute(self, context):
         view = context.space_data
@@ -167,7 +159,7 @@ class Purge(bpy.types.Operator):
     def execute(self, context):
         for col in get_scene_collections(context.scene):
             if not any([col.children, col.objects]):
-                print("Removing collection '%s'." % (col.name))
+                print(f"Removing collection '{col.name}'.")
                 bpy.data.collections.remove(col, do_unlink=True)
 
         return {'FINISHED'}
@@ -187,23 +179,22 @@ class Select(bpy.types.Operator):
 
         objects = col.all_objects if event.shift or self.force_all else col.objects
 
-        if objects:
+        if objects and col:
             hideselect = objects[0].hide_select
 
-            if col:
-                for obj in objects:
-                    # deselect
-                    if event.alt:
-                        obj.select_set(False)
+            for obj in objects:
+                # deselect
+                if event.alt:
+                    obj.select_set(False)
 
-                    # toggle hide_select (but only for objects not all_objects)
-                    elif event.ctrl:
-                        if obj.name in col.objects:
-                            obj.hide_select = not hideselect
+                # toggle hide_select (but only for objects not all_objects)
+                elif event.ctrl:
+                    if obj.name in col.objects:
+                        obj.hide_select = not hideselect
 
-                    # seleect
-                    else:
-                        obj.select_set(True)
+                # seleect
+                else:
+                    obj.select_set(True)
 
         self.force_all = False
         return {'FINISHED'}

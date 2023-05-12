@@ -137,7 +137,13 @@ def get_flick_direction(context, mouse_loc_3d, flick_vector, axes):
         if (axis_2d - origin_2d).length:
             axes_2d[direction] = (axis_2d - origin_2d).normalized()
 
-    return min([(d, abs(flick_vector.xy.angle_signed(a))) for d, a in axes_2d.items()], key=lambda x: x[1])[0]
+    return min(
+        (
+            (d, abs(flick_vector.xy.angle_signed(a)))
+            for d, a in axes_2d.items()
+        ),
+        key=lambda x: x[1],
+    )[0]
 
 
 # HEADER
@@ -171,12 +177,9 @@ def kmi_to_string(kmi, docs_mode=False):
     return keymap item as printable string
     '''
 
-    kmi_str = f"{kmi.idname}, name: {kmi.name}, active: {kmi.active}, map type: {kmi.map_type}, type: {kmi.type}, value: {kmi.value}, alt: {kmi.alt}, ctrl: {kmi.ctrl}, shift: {kmi.shift}, properties: {str(dict(kmi.properties))}"
+    kmi_str = f"{kmi.idname}, name: {kmi.name}, active: {kmi.active}, map type: {kmi.map_type}, type: {kmi.type}, value: {kmi.value}, alt: {kmi.alt}, ctrl: {kmi.ctrl}, shift: {kmi.shift}, properties: {dict(kmi.properties)}"
 
-    if docs_mode:
-        return f"`{kmi_str}`"
-    else:
-        return kmi_str
+    return f"`{kmi_str}`" if docs_mode else kmi_str
 
 
 def draw_keymap_items(kc, name, keylist, layout):
@@ -198,10 +201,11 @@ def draw_keymap_items(kc, name, keylist, layout):
 
                 for kmitem in km.keymap_items:
                     if kmitem.idname == idname:
-                        properties = item.get("properties")
-
-                        if properties:
-                            if all([getattr(kmitem.properties, name, None) == value for name, value in properties]):
+                        if properties := item.get("properties"):
+                            if all(
+                                getattr(kmitem.properties, name, None) == value
+                                for name, value in properties
+                            ):
                                 kmi = kmitem
                                 break
 
@@ -259,16 +263,16 @@ def get_keymap_item(name, idname, key=None, alt=False, ctrl=False, shift=False, 
         shift = int(shift)
 
     if km:
-        kmi = km.keymap_items.get(idname)
-
-        if kmi:
+        if kmi := km.keymap_items.get(idname):
             found = True if key is None else all([kmi.type == key and kmi.alt is alt and kmi.ctrl is ctrl and kmi.shift is shift])
 
             if found:
-                if properties:
-                    if all([getattr(kmi.properties, name, False) == prop for name, prop in properties]):
-                        return kmi
-                else:
+                if not properties:
+                    return kmi
+                if all(
+                    getattr(kmi.properties, name, False) == prop
+                    for name, prop in properties
+                ):
                     return kmi
 
 
@@ -277,10 +281,7 @@ def get_keymap_item(name, idname, key=None, alt=False, ctrl=False, shift=False, 
 def init_status(self, context, title='', func=None):
     self.bar_orig = statusbar.draw
 
-    if func:
-        statusbar.draw = func
-    else:
-        statusbar.draw = draw_basic_status(self, context, title)
+    statusbar.draw = func if func else draw_basic_status(self, context, title)
 
 
 def draw_basic_status(self, context, title):

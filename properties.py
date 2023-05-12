@@ -41,7 +41,7 @@ class M3SceneProperties(bpy.types.PropertyGroup):
         x = (self.pass_through, self.show_edit_mesh_wire)
         shading = context.space_data.shading
 
-        shading.show_xray = True if any(x) else False
+        shading.show_xray = any(x)
 
         if self.show_edit_mesh_wire:
             shading.xray_alpha = 0.1
@@ -78,7 +78,6 @@ class M3SceneProperties(bpy.types.PropertyGroup):
             # if ts.uv_select_mode in ["VERTEX", "EDGE", "FACE"]:
                 # bpy.ops.mesh.select_mode(type=ts.uv_select_mode.replace("VERTEX", "VERT"))
 
-        # store the active selection
         else:
             bm = bmesh.from_edit_mesh(active.data)
             bm.normal_update()
@@ -92,19 +91,13 @@ class M3SceneProperties(bpy.types.PropertyGroup):
             mode = tuple(ts.mesh_select_mode)
 
             # EDGE mode in the mesh becomes, EDGE in uv as well
-            if mode == (False, True, False):
-                ts.uv_select_mode = "EDGE"
-
-            # everything else becomes VERTEX, including FACE
-            # that's because there's no reason to turn off sync for face selections in the first place, faces unlike verts and edges, are always only present once in uv space
-            else:
-                ts.uv_select_mode = "VERTEX"
+            ts.uv_select_mode = "EDGE" if mode == (False, True, False) else "VERTEX"
 
     def update_show_cavity(self, context):
         t = (self.show_cavity, self.show_curvature)
         shading = context.space_data.shading
 
-        shading.show_cavity = True if any(t) else False
+        shading.show_cavity = any(t)
 
         if t == (True, True):
             shading.cavity_type = "BOTH"
@@ -122,11 +115,10 @@ class M3SceneProperties(bpy.types.PropertyGroup):
             # hide collections
             if self.grouppro_dotnames:
                 if not col.name.startswith("."):
-                    col.name = ".%s" % col.name
+                    col.name = f".{col.name}"
 
-            else:
-                if col.name.startswith("."):
-                    col.name = col.name[1:]
+            elif col.name.startswith("."):
+                col.name = col.name[1:]
 
     pass_through: BoolProperty(name="Pass Through", default=False, update=update_xray)
     show_edit_mesh_wire: BoolProperty(name="Show Edit Mesh Wireframe", default=False, update=update_xray)
@@ -215,13 +207,14 @@ class M3SceneProperties(bpy.types.PropertyGroup):
             if self.eevee_preset_set_use_scene_lights:
                 shading.use_scene_lights = True
 
-            if context.scene.render.engine == 'BLENDER_EEVEE':
-                if self.eevee_preset_set_use_scene_lights:
-                    shading.use_scene_lights_render = True
+            if (
+                context.scene.render.engine == 'BLENDER_EEVEE'
+                and self.eevee_preset_set_use_scene_lights
+            ):
+                shading.use_scene_lights_render = True
 
             if self.eevee_preset_set_use_scene_lights:
-                world = context.scene.world
-                if world:
+                if world := context.scene.world:
                     shading.use_scene_world = True
 
                     if context.scene.render.engine == 'BLENDER_EEVEE':
@@ -345,19 +338,18 @@ class M3SceneProperties(bpy.types.PropertyGroup):
             context.preferences.inputs.view_rotate_method = 'TRACKBALL' if self.custom_views_cursor else 'TURNTABLE'
 
         # only actually set the transform preset and draw the cursor axis if hyper cursor tools aren't active
-        if 'machin3.tool_hyper_cursor' not in get_active_tool(context).idname:
-
-            # set transform preset
-            if get_prefs().activate_transform_pie and get_prefs().custom_views_set_transform_preset:
-                bpy.ops.machin3.set_transform_preset(pivot='CURSOR' if self.custom_views_cursor else 'MEDIAN_POINT', orientation='CURSOR' if self.custom_views_cursor else 'GLOBAL')
+        if (
+            'machin3.tool_hyper_cursor' not in get_active_tool(context).idname
+            and get_prefs().activate_transform_pie
+            and get_prefs().custom_views_set_transform_preset
+        ):
+            bpy.ops.machin3.set_transform_preset(pivot='CURSOR' if self.custom_views_cursor else 'MEDIAN_POINT', orientation='CURSOR' if self.custom_views_cursor else 'GLOBAL')
 
     def update_enforce_hide_render(self, context):
         from . ui.operators import shading
 
         for _, name in shading.render_visibility:
-            obj = bpy.data.objects.get(name)
-
-            if obj:
+            if obj := bpy.data.objects.get(name):
                 obj.hide_set(obj.visible_get())
                 
 
@@ -426,9 +418,7 @@ class M3SceneProperties(bpy.types.PropertyGroup):
             self.avoid_update = False
             return
 
-        path = self.unity_export_path
-
-        if path:
+        if path := self.unity_export_path:
             if not path.endswith('.fbx'):
                 path += '.fbx'
 

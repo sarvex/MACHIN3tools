@@ -53,7 +53,7 @@ def draw_mirror(op):
             row.separator(factor=1)
 
             row.label(text="", icon='EVENT_A')
-            row.label(text=f"Remove All + Finish")
+            row.label(text="Remove All + Finish")
 
         if op.mirror_mods:
             row.separator(factor=1)
@@ -200,15 +200,17 @@ class Mirror(bpy.types.Operator):
 
 
         # draw chosen misaligned mirror obj (cant be drawn when passing through, as we cant update the cursor location then)
-        if self.remove and self.misaligned and self.use_misalign:
+        if (
+            self.remove
+            and self.misaligned
+            and self.use_misalign
+            and self.mirror_obj.type == 'EMPTY'
+        ):
+            # when passing through, update 2d cursor here, as the modal isn't running then
+            if self.passthrough:
+                self.mirror_obj_2d = get_loc_2d(context, self.mirror_obj.matrix_world.to_translation())
 
-            if self.mirror_obj.type == 'EMPTY':
-
-                # when passing through, update 2d cursor here, as the modal isn't running then
-                if self.passthrough:
-                    self.mirror_obj_2d = get_loc_2d(context, self.mirror_obj.matrix_world.to_translation())
-
-                draw_circle(self.mirror_obj_2d, size=10 * self.scale, width=2 * self.scale, color=blue, alpha=0.99)
+            draw_circle(self.mirror_obj_2d, size=10 * self.scale, width=2 * self.scale, color=blue, alpha=0.99)
 
     def draw_VIEW3D(self, context):
         for direction, axis, color in zip(self.axes.keys(), self.axes.values(), self.colors):
@@ -414,8 +416,10 @@ class Mirror(bpy.types.Operator):
 
         self.active = context.active_object
         self.sel = context.selected_objects
-        self.meshes_present = True if any([obj for obj in self.sel if obj.type == 'MESH']) else False
-        self.decals_present = True if self.decalmachine and any([obj for obj in self.sel if obj.DM.isdecal]) else False
+        self.meshes_present = any(obj for obj in self.sel if obj.type == 'MESH')
+        self.decals_present = bool(
+            self.decalmachine and any(obj for obj in self.sel if obj.DM.isdecal)
+        )
 
         if self.flick:
             self.mx = self.active.matrix_world
@@ -431,7 +435,7 @@ class Mirror(bpy.types.Operator):
             self.cursor_empty = self.get_matching_cursor_empty(context)
 
             # always default to using an existing cursor empty, if present
-            self.use_existing_cursor = True if self.cursor_empty else False
+            self.use_existing_cursor = bool(self.cursor_empty)
 
             # screencast
             self.removeall = False
@@ -511,14 +515,14 @@ class Mirror(bpy.types.Operator):
         return axis dict based on passed in matrix
         '''
 
-        axes = {'POSITIVE_X': mx.to_quaternion() @ Vector((1, 0, 0)),
-                'NEGATIVE_X': mx.to_quaternion() @ Vector((-1, 0, 0)),
-                'POSITIVE_Y': mx.to_quaternion() @ Vector((0, 1, 0)),
-                'NEGATIVE_Y': mx.to_quaternion() @ Vector((0, -1, 0)),
-                'POSITIVE_Z': mx.to_quaternion() @ Vector((0, 0, 1)),
-                'NEGATIVE_Z': mx.to_quaternion() @ Vector((0, 0, -1))}
-
-        return axes
+        return {
+            'POSITIVE_X': mx.to_quaternion() @ Vector((1, 0, 0)),
+            'NEGATIVE_X': mx.to_quaternion() @ Vector((-1, 0, 0)),
+            'POSITIVE_Y': mx.to_quaternion() @ Vector((0, 1, 0)),
+            'NEGATIVE_Y': mx.to_quaternion() @ Vector((0, -1, 0)),
+            'POSITIVE_Z': mx.to_quaternion() @ Vector((0, 0, 1)),
+            'NEGATIVE_Z': mx.to_quaternion() @ Vector((0, 0, -1)),
+        }
 
     def get_matching_cursor_empty(self, context):
         '''
@@ -527,9 +531,12 @@ class Mirror(bpy.types.Operator):
 
         scene = context.scene
 
-        matching_empties = [obj for obj in scene.objects if obj.type == 'EMPTY' and compare_matrix(obj.matrix_world, self.cmx, precision=5)]
-
-        if matching_empties:
+        if matching_empties := [
+            obj
+            for obj in scene.objects
+            if obj.type == 'EMPTY'
+            and compare_matrix(obj.matrix_world, self.cmx, precision=5)
+        ]:
             return matching_empties[0]
 
     def get_mirror_mods(self, objects):
@@ -624,16 +631,12 @@ class Mirror(bpy.types.Operator):
             mirror.mirror_object = mirror_object
             # parent(obj, mirror_object)
 
-        if self.decalmachine:
-            if obj.DM.isdecal:
-                mirror.use_mirror_u = self.DM_mirror_u
-                mirror.use_mirror_v = self.DM_mirror_v
+        if self.decalmachine and obj.DM.isdecal:
+            mirror.use_mirror_u = self.DM_mirror_u
+            mirror.use_mirror_v = self.DM_mirror_v
 
-                # move normal transfer mod to the end of the stack
-                nrmtransfer = obj.modifiers.get("NormalTransfer")
-
-                if nrmtransfer:
-                    bpy.ops.object.modifier_move_to_index({'object': obj}, modifier=nrmtransfer.name, index=len(obj.modifiers) - 1)
+            if nrmtransfer := obj.modifiers.get("NormalTransfer"):
+                bpy.ops.object.modifier_move_to_index({'object': obj}, modifier=nrmtransfer.name, index=len(obj.modifiers) - 1)
 
     def mirror_gpencil_obj(self, context, obj, mirror_object=None):
         mirror = obj.grease_pencil_modifiers.new(name="Mirror", type="GP_MIRROR")
@@ -705,16 +708,23 @@ class Mirror(bpy.types.Operator):
         axis = self.flick_direction.split('_')[1]
 
         if self.misaligned and self.use_misalign:
-            if obj.type == 'GPENCIL':
-                mods = [mod for mod in self.misaligned['object_mods'][self.mirror_obj] if getattr(mod, f'use_axis_{axis.lower()}')]
-            else:
-                mods = [mod for mod in self.misaligned['object_mods'][self.mirror_obj] if mod.use_axis[axis_index_mapping[axis]]]
-
+            mods = (
+                [
+                    mod
+                    for mod in self.misaligned['object_mods'][self.mirror_obj]
+                    if getattr(mod, f'use_axis_{axis.lower()}')
+                ]
+                if obj.type == 'GPENCIL'
+                else [
+                    mod
+                    for mod in self.misaligned['object_mods'][self.mirror_obj]
+                    if mod.use_axis[axis_index_mapping[axis]]
+                ]
+            )
+        elif obj.type == 'GPENCIL':
+            mods = [mod for mod in self.aligned if getattr(mod, f'use_axis_{axis.lower()}')]
         else:
-            if obj.type == 'GPENCIL':
-                mods = [mod for mod in self.aligned if getattr(mod, f'use_axis_{axis.lower()}')]
-            else:
-                mods = [mod for mod in self.aligned if mod.use_axis[axis_index_mapping[axis]]]
+            mods = [mod for mod in self.aligned if mod.use_axis[axis_index_mapping[axis]]]
 
         if mods:
             mod = mods[-1]
@@ -789,11 +799,7 @@ class Mirror(bpy.types.Operator):
             printd(misaligned)
 
         # only return mislained as as dict, if it was actually populated
-        if misaligned['sorted_mods']:
-            return aligned, misaligned
-
-        else:
-            return aligned, False
+        return (aligned, misaligned) if misaligned['sorted_mods'] else (aligned, False)
 
 
 class Unmirror(bpy.types.Operator):
@@ -855,16 +861,14 @@ class Unmirror(bpy.types.Operator):
         return {'FINISHED'}
 
     def unmirror_mesh_obj(self, obj):
-        mirrors = [mod for mod in obj.modifiers if mod.type == "MIRROR"]
-
-        if mirrors:
+        if mirrors := [mod for mod in obj.modifiers if mod.type == "MIRROR"]:
             target = mirrors[-1].mirror_object
             obj.modifiers.remove(mirrors[-1])
 
             return target
 
     def unmirror_gpencil_obj(self, obj):
-        mirrors = [mod for mod in obj.grease_pencil_modifiers if mod.type == "GP_MIRROR"]
-
-        if mirrors:
+        if mirrors := [
+            mod for mod in obj.grease_pencil_modifiers if mod.type == "GP_MIRROR"
+        ]:
             obj.grease_pencil_modifiers.remove(mirrors[-1])

@@ -15,7 +15,7 @@ hypercursor = None
 
 def draw_axes_HUD(context, objects):
     global hypercursor
-    
+
     if not hypercursor:
         hypercursor = get_addon('HyperCursor')[0]
 
@@ -51,27 +51,71 @@ def draw_axes_HUD(context, objects):
                         factor = get_zoom_factor(context, origin, scale=300, ignore_obj_scale=True) if screenspace else 1
 
                         if show_cursor and screenspace:
-                            coords.append(origin + (mx.to_3x3() @ axis).normalized() * 0.1 * ui_scale * factor * 0.8)
-                            coords.append(origin + (mx.to_3x3() @ axis).normalized() * 0.1 * ui_scale * factor * 1.2)
-
+                            coords.extend(
+                                (
+                                    origin
+                                    + (mx.to_3x3() @ axis).normalized()
+                                    * 0.1
+                                    * ui_scale
+                                    * factor
+                                    * 0.8,
+                                    origin
+                                    + (mx.to_3x3() @ axis).normalized()
+                                    * 0.1
+                                    * ui_scale
+                                    * factor
+                                    * 1.2,
+                                )
+                            )
                         else:
-                            coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.9)
-                            coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor)
-
-                            coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.1)
-                            coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.7)
-
-                # OBJECT
-
+                            coords.extend(
+                                (
+                                    origin
+                                    + (mx.to_3x3() @ axis).normalized()
+                                    * size
+                                    * ui_scale
+                                    * factor
+                                    * 0.9,
+                                    origin
+                                    + (mx.to_3x3() @ axis).normalized()
+                                    * size
+                                    * ui_scale
+                                    * factor,
+                                    origin
+                                    + (mx.to_3x3() @ axis).normalized()
+                                    * size
+                                    * ui_scale
+                                    * factor
+                                    * 0.1,
+                                    origin
+                                    + (mx.to_3x3() @ axis).normalized()
+                                    * size
+                                    * ui_scale
+                                    * factor
+                                    * 0.7,
+                                )
+                            )
                 elif str(obj) != '<bpy_struct, Object invalid>':
                     mx = obj.matrix_world
                     origin = mx.decompose()[0]
 
                     factor = get_zoom_factor(context, origin, scale=300, ignore_obj_scale=True) if screenspace else 1
 
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor * 0.1)
-                    coords.append(origin + (mx.to_3x3() @ axis).normalized() * size * ui_scale * factor)
-
+                    coords.extend(
+                        (
+                            origin
+                            + (mx.to_3x3() @ axis).normalized()
+                            * size
+                            * ui_scale
+                            * factor
+                            * 0.1,
+                            origin
+                            + (mx.to_3x3() @ axis).normalized()
+                            * size
+                            * ui_scale
+                            * factor,
+                        )
+                    )
                     """
                     # debuging stash + stashtargtmx for object origin changes
                     for stash in obj.MM.stashes:
@@ -108,73 +152,85 @@ def draw_axes_HUD(context, objects):
 
 
 def draw_focus_HUD(context, color=(1, 1, 1), alpha=1, width=2):
-    if context.space_data.overlay.show_overlays:
-        region = context.region
-        view = context.space_data
+    if not context.space_data.overlay.show_overlays:
+        return
+    view = context.space_data
 
         # only draw when actually in local view, this prevents it being drawn when switing workspace, which doesn't sync local view
-        if view.local_view:
+    if view.local_view:
 
-            # draw border
-
-            coords = [(width, width), (region.width - width, width), (region.width - width, region.height - width), (width, region.height - width)]
-            indices =[(0, 1), (1, 2), (2, 3), (3, 0)]
-
-            shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-            shader.bind()
-            shader.uniform_float("color", (*color, alpha / 4))
-
-            gpu.state.depth_test_set('NONE')
-            gpu.state.blend_set('ALPHA' if (alpha / 4) < 1 else 'NONE')
-            gpu.state.line_width_set(width)
-
-            batch = batch_for_shader(shader, 'LINES', {"pos": coords}, indices=indices)
-            batch.draw(shader)
-
-            # draw title
-
-            scale = context.preferences.view.ui_scale * get_prefs().HUD_scale
-            offset = 4
-
-            # add additional offset if necessary
-            if require_header_offset(context, top=True):
-                offset += int(25)
-
-            title = "Focus Level: %d" % len(context.scene.M3.focus_history)
-
-            stashes = True if context.active_object and getattr(context.active_object, 'MM', False) and getattr(context.active_object.MM, 'stashes') else False
-            center = (region.width / 2) + (scale * 100) if stashes else region.width / 2
-
-            font = 1
-            fontsize = int(12 * scale)
-
-            blf.size(font, fontsize, 72)
-            blf.color(font, *color, alpha)
-            blf.position(font, center - int(60 * scale), region.height - offset - int(fontsize), 0)
-
-            blf.draw(font, title)
-
-
-def draw_surface_slide_HUD(context, color=(1, 1, 1), alpha=1, width=2):
-    if context.space_data.overlay.show_overlays:
         region = context.region
+        # draw border
+
+        coords = [(width, width), (region.width - width, width), (region.width - width, region.height - width), (width, region.height - width)]
+        indices =[(0, 1), (1, 2), (2, 3), (3, 0)]
+
+        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        shader.bind()
+        shader.uniform_float("color", (*color, alpha / 4))
+
+        gpu.state.depth_test_set('NONE')
+        gpu.state.blend_set('ALPHA' if alpha < 4 else 'NONE')
+        gpu.state.line_width_set(width)
+
+        batch = batch_for_shader(shader, 'LINES', {"pos": coords}, indices=indices)
+        batch.draw(shader)
+
+        # draw title
 
         scale = context.preferences.view.ui_scale * get_prefs().HUD_scale
-        offset = 0
+        offset = 4
 
-        if require_header_offset(context, top=False):
-            offset += int(20)
+            # add additional offset if necessary
+        if require_header_offset(context, top=True):
+            offset += 25
 
-        title = "Surface Sliding"
+        title = "Focus Level: %d" % len(context.scene.M3.focus_history)
+
+        stashes = bool(
+            context.active_object
+            and getattr(context.active_object, 'MM', False)
+            and getattr(context.active_object.MM, 'stashes')
+        )
+        center = (region.width / 2) + (scale * 100) if stashes else region.width / 2
 
         font = 1
         fontsize = int(12 * scale)
 
         blf.size(font, fontsize, 72)
         blf.color(font, *color, alpha)
-        blf.position(font, (region.width / 2) - int(60 * scale), 0 + offset + int(fontsize), 0)
+        blf.position(
+            font,
+            center - int(60 * scale),
+            region.height - offset - fontsize,
+            0,
+        )
 
         blf.draw(font, title)
+
+
+def draw_surface_slide_HUD(context, color=(1, 1, 1), alpha=1, width=2):
+    if not context.space_data.overlay.show_overlays:
+        return
+    region = context.region
+
+    scale = context.preferences.view.ui_scale * get_prefs().HUD_scale
+    offset = 0
+
+    if require_header_offset(context, top=False):
+        offset += 20
+
+    font = 1
+    fontsize = int(12 * scale)
+
+    blf.size(font, fontsize, 72)
+    blf.color(font, *color, alpha)
+    blf.position(
+        font, (region.width / 2) - int(60 * scale), 0 + offset + fontsize, 0
+    )
+
+    title = "Surface Sliding"
+    blf.draw(font, title)
 
 
 def draw_screen_cast_HUD(context):
@@ -306,7 +362,12 @@ def draw_label(context, title='', coords=None, center=True, color=(1, 1, 1), alp
     blf.color(font, *color, alpha)
 
     if center:
-        blf.position(font, width - (int(len(title) * scale * 7) / 2), height + int(fontsize), 0)
+        blf.position(
+            font,
+            width - (int(len(title) * scale * 7) / 2),
+            height + fontsize,
+            0,
+        )
     else:
         blf.position(font, *(coords), 1)
 

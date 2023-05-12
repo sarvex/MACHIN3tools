@@ -25,9 +25,7 @@ class OriginToActive(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        active = context.active_object
-
-        if active:
+        if active := context.active_object:
             if context.mode == 'OBJECT':
                 return [obj for obj in context.selected_objects if obj != active and obj.type not in ['EMPTY', 'FONT']]
 

@@ -124,7 +124,7 @@ class Snap:
 
             # HITFACE
 
-            if not self.hitface or (self.hitface and self.hitface.index != self.hitindex):
+            if not self.hitface or self.hitface.index != self.hitindex:
                 self.log("Hitface changed to", self.hitindex)
 
                 self.hitface = self.cache.bmeshes[name].faces[self.hitindex]

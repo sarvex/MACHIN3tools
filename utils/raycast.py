@@ -161,7 +161,7 @@ def get_closest(origin, candidates=[], depsgraph=None, debug=False):
                 nearestobj, nearestlocation, nearestnormal, nearestindex, nearestdistance = obj, mx @ location, mx.to_3x3() @ normal, index, distance
 
         elif debug:
-                print("candidate:", "%s's evaluated mesh contains no faces" % (obj))
+            print("candidate:", f"{obj}'s evaluated mesh contains no faces")
 
 
     if debug:
@@ -196,24 +196,25 @@ def cast_scene_ray_from_mouse(mousepos, depsgraph, exclude=[], exclude_wire=Fals
     hidden = []
 
     # additional casts in case the hit object should be excluded
-    if hit:
-        if obj in exclude or (exclude_wire and obj.display_type == 'WIRE'):
-            ignore = True
+    if hit and (
+        obj in exclude or (exclude_wire and obj.display_type == 'WIRE')
+    ):
+        ignore = True
 
-            while ignore:
-                if debug:
-                    print(" Ignoring object", obj.name)
+        while ignore:
+            if debug:
+                print(" Ignoring object", obj.name)
 
-                # temporarily hide and collect excluded object
-                obj.hide_set(True)
-                hidden.append(obj)
+            # temporarily hide and collect excluded object
+            obj.hide_set(True)
+            hidden.append(obj)
 
-                hit, location, normal, index, obj, mx = scene.ray_cast(depsgraph=depsgraph, origin=view_origin, direction=view_dir)
+            hit, location, normal, index, obj, mx = scene.ray_cast(depsgraph=depsgraph, origin=view_origin, direction=view_dir)
 
-                if hit:
-                    ignore = obj in exclude or (exclude_wire and obj.display_type == 'WIRE')
-                else:
-                    break
+            if hit:
+                ignore = obj in exclude or (exclude_wire and obj.display_type == 'WIRE')
+            else:
+                break
 
     # hide the unhide objects again
     for ob in unhide:

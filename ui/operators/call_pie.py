@@ -38,13 +38,11 @@ class CallMACHIN3toolsPie(bpy.types.Operator):
                     context.scene.M3.use_flat_shadows = shading.show_shadows
 
 
-                bpy.ops.wm.call_menu_pie(name='MACHIN3_MT_%s' % (self.idname))
-
-            # TOOLS PIE
+                bpy.ops.wm.call_menu_pie(name=f'MACHIN3_MT_{self.idname}')
 
             elif self.idname == 'tools_pie':
                 if context.mode in ['OBJECT', 'EDIT_MESH']:
-                    bpy.ops.wm.call_menu_pie(name='MACHIN3_MT_%s' % (self.idname))
+                    bpy.ops.wm.call_menu_pie(name=f'MACHIN3_MT_{self.idname}')
 
                 else:
                     return {'PASS_THROUGH'}

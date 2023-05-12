@@ -166,7 +166,7 @@ def join(target, objects, select=[]):
     if not select_layer:
         select_layer = bm.faces.layers.int.new('Machin3FaceSelect')
 
-    if any([obj.data.use_auto_smooth for obj in objects]):
+    if any(obj.data.use_auto_smooth for obj in objects):
         target.data.use_auto_smooth = True
 
     for idx, obj in enumerate(objects):

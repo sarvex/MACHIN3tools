@@ -36,9 +36,7 @@ class MeshCut(bpy.types.Operator):
 
     def execute(self, context):
         target = context.active_object
-        cutters = [obj for obj in context.selected_objects if obj != target]
-
-        if cutters:
+        if cutters := [obj for obj in context.selected_objects if obj != target]:
             cutter = cutters[0]
 
             # unhide both

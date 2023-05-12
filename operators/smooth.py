@@ -39,9 +39,7 @@ class ToggleSmooth(bpy.types.Operator):
     def execute(self, context):
         if context.mode == 'EDIT_MESH':
             active = context.active_object
-            subds = [mod for mod in active.modifiers if mod.type == 'SUBSURF']
-
-            if subds:
+            if subds := [mod for mod in active.modifiers if mod.type == 'SUBSURF']:
                 # print("SubD Workflow")
                 self.toggle_subd(context, active, subds)
 
@@ -55,9 +53,9 @@ class ToggleSmooth(bpy.types.Operator):
             toggle_type = 'TOGGLE'
 
             for obj in objects:
-                subds = [mod for mod in obj.modifiers if mod.type == 'SUBSURF']
-
-                if subds:
+                if subds := [
+                    mod for mod in obj.modifiers if mod.type == 'SUBSURF'
+                ]:
                     # print("SubD Workflow")
                     toggle_type = self.toggle_subd(context, obj, subds, toggle_type=toggle_type)
 
@@ -72,14 +70,11 @@ class ToggleSmooth(bpy.types.Operator):
 
         if obj.mode == 'EDIT':
             bm = bmesh.from_edit_mesh(obj.data)
-            bm.normal_update()
-            bm.faces.ensure_lookup_table()
-
         else:
             bm = bmesh.new()
             bm.from_mesh(obj.data)
-            bm.normal_update()
-            bm.faces.ensure_lookup_table()
+        bm.normal_update()
+        bm.faces.ensure_lookup_table()
 
         overlay = context.space_data.overlay
 
@@ -89,7 +84,7 @@ class ToggleSmooth(bpy.types.Operator):
 
         # ENABLE
 
-        if not (subds[0].show_in_editmode and subds[0].show_viewport):
+        if not subds[0].show_in_editmode or not subds[0].show_viewport:
             if toggle_type in ['TOGGLE', 'ENABLE']:
 
                 # enable face smoothing if necessary
@@ -115,34 +110,31 @@ class ToggleSmooth(bpy.types.Operator):
                 return 'ENABLE'
 
 
-        # DISABLE
+        elif toggle_type in ['TOGGLE', 'DISABLE']:
 
-        else:
-            if toggle_type in ['TOGGLE', 'DISABLE']:
+            # disable face smoothing if it was enabled before
+            if obj.M3.has_smoothed:
+                for f in bm.faces:
+                    f.smooth = False
 
-                # disable face smoothing if it was enabled before
-                if obj.M3.has_smoothed:
-                    for f in bm.faces:
-                        f.smooth = False
+                if obj.mode == 'EDIT':
+                    bmesh.update_edit_mesh(obj.data)
 
-                    if obj.mode == 'EDIT':
-                        bmesh.update_edit_mesh(obj.data)
+                else:
+                    bm.to_mesh(obj.data)
+                    bm.free()
 
-                    else:
-                        bm.to_mesh(obj.data)
-                        bm.free()
-
-                    obj.M3.has_smoothed = False
+                obj.M3.has_smoothed = False
 
 
-                for subd in subds:
-                    subd.show_in_editmode = False
-                    subd.show_viewport = False
+            for subd in subds:
+                subd.show_in_editmode = False
+                subd.show_viewport = False
 
-                # re-enable overlays, prevent doing it multiple times when batch smoothing
-                if toggle_type == 'TOGGLE':
-                    overlay.show_overlays = True
-                return 'DISABLE'
+            # re-enable overlays, prevent doing it multiple times when batch smoothing
+            if toggle_type == 'TOGGLE':
+                overlay.show_overlays = True
+            return 'DISABLE'
 
         print(f" INFO: SubD Smoothing is {'enabled' if toggle_type == 'ENABLE' else 'disabled'} already for {obj.name}")
         return toggle_type
@@ -161,15 +153,11 @@ class ToggleSmooth(bpy.types.Operator):
 
         if obj.mode == 'EDIT':
             bm = bmesh.from_edit_mesh(obj.data)
-            bm.normal_update()
-            bm.faces.ensure_lookup_table()
-
         else:
             bm = bmesh.new()
             bm.from_mesh(obj.data)
-            bm.normal_update()
-            bm.faces.ensure_lookup_table()
-
+        bm.normal_update()
+        bm.faces.ensure_lookup_table()
 
         # ENABLE
 
@@ -199,32 +187,29 @@ class ToggleSmooth(bpy.types.Operator):
                 return 'ENABLE'
 
 
-        # DISABLE
+        elif toggle_type in ['TOGGLE', 'DISABLE']:
 
-        else:
-            if toggle_type in ['TOGGLE', 'DISABLE']:
+            # change the auto-smooth angle
+            obj.data.auto_smooth_angle = obj.M3.smooth_angle
 
-                # change the auto-smooth angle
-                obj.data.auto_smooth_angle = obj.M3.smooth_angle
+            # disable face smoothing if it was enabled before
+            if obj.M3.has_smoothed:
+                for f in bm.faces:
+                    f.smooth = False
 
-                # disable face smoothing if it was enabled before
-                if obj.M3.has_smoothed:
-                    for f in bm.faces:
-                        f.smooth = False
+                if obj.mode == 'EDIT':
+                    bmesh.update_edit_mesh(obj.data)
 
-                    if obj.mode == 'EDIT':
-                        bmesh.update_edit_mesh(obj.data)
+                else:
+                    bm.to_mesh(obj.data)
+                    bm.free()
 
-                    else:
-                        bm.to_mesh(obj.data)
-                        bm.free()
+                obj.M3.has_smoothed = False
 
-                    obj.M3.has_smoothed = False
-
-                # re-enable overlays
-                if toggle_type == 'TOGGLE':
-                    overlay.show_overlays = True
-                return 'DISABLE'
+            # re-enable overlays
+            if toggle_type == 'TOGGLE':
+                overlay.show_overlays = True
+            return 'DISABLE'
 
         print(f" INFO: Korean Bevel Smoothing is {'enabled' if toggle_type == 'ENABLE' else 'disabled'} already for {obj.name}")
         return toggle_type

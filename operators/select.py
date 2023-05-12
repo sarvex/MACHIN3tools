@@ -32,10 +32,9 @@ class SelectCenterObjects(bpy.types.Operator):
         return context.mode == 'OBJECT'
 
     def execute(self, context):
-        visible = [obj for obj in context.visible_objects if obj.type == "MESH"]
-
-        if visible:
-
+        if visible := [
+            obj for obj in context.visible_objects if obj.type == "MESH"
+        ]:
             bpy.ops.object.select_all(action='DESELECT')
 
             for obj in visible:

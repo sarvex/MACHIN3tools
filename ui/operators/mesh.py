@@ -216,7 +216,7 @@ class Shade(bpy.types.Operator):
                               'verts': [],
                               'edges': []} for vg in obj.vertex_groups if 'Edge Bevel' in vg.name}
 
-        verts = [v for v in bm.verts]
+        verts = list(bm.verts)
 
         # find out what verts are in what group
         for v in verts:
@@ -232,7 +232,7 @@ class Shade(bpy.types.Operator):
         for e in bm.edges:
             # print(e.index, [v.index for v in e.verts])
 
-            for vgindex, vgdata in vgroups.items():
+            for vgdata in vgroups.values():
                 if all(v.index in vgdata['verts'] for v in e.verts):
                     edge_bevelled_edges.append(e.index)
 
@@ -301,9 +301,7 @@ class ToggleAutoSmooth(bpy.types.Operator):
             return "Auto Smooth Angle Preset: %d" % (properties.angle)
 
     def execute(self, context):
-        active = context.active_object
-
-        if active:
+        if active := context.active_object:
             sel = context.selected_objects
 
             if active not in sel:
